@@ -239,9 +239,10 @@ def create(
     return 0
 
 
-@app.command()
+@app.command("lint")
 def lint(
-    commit_msg_file: Optional[Path] = typer.Argument(None, help="Path to commit message file (used by Git hooks)"),
+    message: Optional[str] = typer.Option(None, "-m", "--message", help="Message to lint"),
+    file: Optional[Path] = typer.Argument(None, help="Path to commit message file or '-' for stdin"),
     config_file: Optional[str] = typer.Option(None, "--config", "-c", help="Path to config file"),
     format_type: Optional[str] = typer.Option(
         None, "--format-type", "-f", help="Override format type (conventional, github, jira, custom)"
@@ -251,7 +252,6 @@ def lint(
         "--interactive/--no-interactive",
         help="Enable/disable interactive mode on failure",
     ),
-    message: Optional[str] = typer.Option(None, "--message", "-m", help="Commit message to lint (for CLI usage)"),
 ):
     """
     Lint a commit message according to configured format.
@@ -286,24 +286,30 @@ def lint(
         console.print(f"[bold red]Error loading config:[/bold red] {str(e)}")
         raise typer.Exit(code=1)
 
-    # Get commit message from file or direct input
-    commit_message = ""
+    # Get the message to lint
     if message:
-        commit_message = message
-    elif commit_msg_file:
-        try:
-            with open(commit_msg_file, "r") as f:
-                commit_message = f.read()
-        except Exception as e:
-            console.print(f"[bold red]Error reading commit message file:[/bold red] {str(e)}")
-            raise typer.Exit(code=1)
+        # Message provided via command line option
+        message_text = message
+    elif file:
+        if str(file) == "-":
+            # Read from stdin when file is "-"
+            message_text = typer.get_text_stream("stdin").read().strip()
+        elif file.exists():
+            # Read from file
+            message_text = file.read_text().strip()
+        else:
+            console.print(f"[red]Error:[/red] File not found: {file}")
+            return 1
+    elif not typer.get_text_stream("stdin").isatty():
+        # No message or file specified, but stdin has content
+        message_text = typer.get_text_stream("stdin").read().strip()
     else:
-        console.print("[bold yellow]No commit message provided.[/bold yellow]")
-        console.print("Use --message/-m to provide a message or specify a commit message file.")
-        raise typer.Exit(code=1)
+        # No message provided
+        console.print("[red]Error:[/red] No message provided")
+        return 1
 
     # Validate the message using the selected format
-    result = commit_format.validate(commit_message)
+    result = commit_format.validate(message_text)
 
     if result.valid:
         console.print("[bold green]Commit message is valid![/bold green]")
@@ -321,8 +327,8 @@ def lint(
         new_message = commit_format.prompt_for_message(config)
 
         # If this was called from a Git hook, write the new message back to the file
-        if commit_msg_file:
-            with open(commit_msg_file, "w") as f:
+        if file:
+            with open(file, "w") as f:
                 f.write(new_message)
             console.print("[bold green]New commit message saved to file.[/bold green]")
         else:
