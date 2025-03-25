@@ -1,7 +1,14 @@
+"""
+Conventional Commits format implementation.
+
+This module implements the Conventional Commits specification as defined
+at https://www.conventionalcommits.org/. It provides validation and
+interactive generation of commit messages in this format.
+"""
+
 import re
-from typing import Dict, List, Optional, Any
+from typing import Dict, Optional, Any
 from rich.panel import Panel
-from rich.prompt import Prompt, Confirm
 from rich.console import Console
 import questionary
 
@@ -26,7 +33,20 @@ console = Console()
 
 
 class ConventionalCommitResult(CommitFormatResult):
-    """Results specific to Conventional Commits validation"""
+    """
+    Results specific to Conventional Commits validation.
+
+    This class extends the base CommitFormatResult with fields specific
+    to the Conventional Commits format.
+
+    Attributes:
+        type: The commit type (e.g., 'feat', 'fix')
+        scope: The commit scope, if specified
+        breaking: Whether this is a breaking change
+        description: The commit description
+        body: The commit message body, if provided
+        footer: The commit message footer, if provided
+    """
 
     type: Optional[str] = None
     scope: Optional[str] = None
@@ -37,13 +57,32 @@ class ConventionalCommitResult(CommitFormatResult):
 
 
 class ConventionalCommitFormat(CommitFormat):
-    """Implementation of Conventional Commits format"""
+    """
+    Implementation of Conventional Commits format.
+
+    This class validates and generates commit messages according to the
+    Conventional Commits specification. It supports all standard features
+    including types, scopes, breaking changes, descriptions, bodies, and footers.
+    """
 
     @classmethod
     def get_format_name(cls) -> str:
+        """
+        Return the canonical name of this commit format.
+
+        Returns:
+            str: The string 'conventional' which identifies this format.
+        """
         return "conventional"
 
     def __init__(self, config: Dict[str, Any]):
+        """
+        Initialize the format validator with configuration settings.
+
+        Args:
+            config: Configuration dictionary with Conventional Commits settings such as
+                   allowed types, scopes, and validation rules.
+        """
         self.config = config
 
         # Create regex pattern for conventional commits - fixed to properly separate description
@@ -51,14 +90,26 @@ class ConventionalCommitFormat(CommitFormat):
             r"^(?P<type>\w+)"
             r"(?:\((?P<scope>[\w-]+)\))?"
             r"(?P<breaking>!)?"
-            r": (?P<description>[^\n]+)"  # Changed from .+ to [^\n]+ to stop at first newline
-            r"(?:\n\n(?P<body>[\s\S]*?))?"  # Made non-greedy with *?
+            r": (?P<description>[^\n]+)"
+            r"(?:\n\n(?P<body>[\s\S]*?))?"
             r"(?:\n\n(?P<footer>[\s\S]*))?$",
             re.DOTALL,
         )
 
     def validate(self, commit_message: str) -> ConventionalCommitResult:
-        """Validate a commit message according to Conventional Commits format"""
+        """
+        Validate a commit message according to Conventional Commits format.
+
+        This method checks if the message complies with the Conventional Commits
+        specification and any additional rules specified in the configuration.
+
+        Args:
+            commit_message: The commit message string to validate.
+
+        Returns:
+            ConventionalCommitResult: A result object containing validation status,
+                                     any errors, and parsed components of the message.
+        """
         errors = []
 
         # Match against pattern
@@ -142,7 +193,29 @@ class ConventionalCommitFormat(CommitFormat):
         )
 
     def prompt_for_message(self, config: Dict[str, Any]) -> str:
-        """Interactive prompt to create a Conventional Commits message"""
+        """
+        Interactive prompt to create a Conventional Commits message.
+
+        This method guides the user through creating a commit message that follows
+        the Conventional Commits specification, prompting for:
+
+        1. Type (e.g., feat, fix) from configured allowed types
+        2. Scope (optional or required based on configuration)
+        3. Whether the change is breaking (for allowed types)
+        4. Description (subject line)
+        5. Optional body for detailed explanation
+        6. Optional footer including breaking change notes
+
+        Breaking changes are marked with both an exclamation mark (!) after the type/scope
+        and a "BREAKING CHANGE: description" entry in the footer.
+
+        Args:
+            config: Configuration dictionary with format settings including allowed types,
+                   scopes, breaking change settings, and validation rules.
+
+        Returns:
+            str: A properly formatted Conventional Commits message.
+        """
         console.print(Panel("Create a Conventional Commit message", title="Commit Message"))
 
         # Get type

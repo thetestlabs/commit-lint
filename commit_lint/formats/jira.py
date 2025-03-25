@@ -1,5 +1,13 @@
+"""
+Jira-style commit format implementation.
+
+This module implements validation and generation of Jira-style commit messages,
+which typically reference Jira issue IDs in the format "PROJ-123: Message".
+It supports configurable project keys and message formatting rules.
+"""
+
 import re
-from typing import Dict, List, Optional, Any
+from typing import Dict, Optional, Any
 from rich.panel import Panel
 from rich.prompt import Prompt, Confirm
 from rich.console import Console
@@ -10,7 +18,17 @@ console = Console()
 
 
 class JiraCommitResult(CommitFormatResult):
-    """Results specific to Jira style commit validation"""
+    """
+    Results specific to Jira style commit validation.
+
+    This class extends the base CommitFormatResult with fields specific
+    to the Jira commit format, including the issue ID and message components.
+
+    Attributes:
+        issue_id: The Jira issue identifier (e.g., "PROJ-123")
+        message: The commit message content after the issue ID
+        body: Optional detailed description following the summary
+    """
 
     issue_id: Optional[str] = None
     message: Optional[str] = None
@@ -18,13 +36,32 @@ class JiraCommitResult(CommitFormatResult):
 
 
 class JiraCommitFormat(CommitFormat):
-    """Implementation of Jira style commit format"""
+    """
+    Implementation of Jira style commit format.
+
+    This class validates and generates commit messages that follow the Jira
+    style, typically with a reference to a Jira issue ID at the beginning
+    of the message.
+    """
 
     @classmethod
     def get_format_name(cls) -> str:
+        """
+        Return the canonical name of this commit format.
+
+        Returns:
+            str: The string 'jira' which identifies this format.
+        """
         return "jira"
 
     def __init__(self, config: Dict[str, Any]):
+        """
+        Initialize the Jira format validator with configuration settings.
+
+        Args:
+            config: Configuration dictionary with settings such as jira_project_keys,
+                  require_issue_id, and max_message_length.
+        """
         self.config = config
 
         # Get Jira project keys from config
@@ -39,7 +76,20 @@ class JiraCommitFormat(CommitFormat):
         )
 
     def validate(self, commit_message: str) -> JiraCommitResult:
-        """Validate a commit message according to Jira style"""
+        """
+        Validate a commit message according to Jira style.
+
+        This method checks if the message follows the Jira format with an
+        issue ID reference and applies additional validation rules defined
+        in configuration.
+
+        Args:
+            commit_message: The commit message string to validate.
+
+        Returns:
+            JiraCommitResult: A result object containing validation status,
+                             any errors, and parsed components of the message.
+        """
         errors = []
 
         # Match against pattern
@@ -84,8 +134,26 @@ class JiraCommitFormat(CommitFormat):
         return JiraCommitResult(valid=len(errors) == 0, errors=errors, issue_id=issue_id, message=message, body=body)
 
     def prompt_for_message(self, config: Dict[str, Any]) -> str:
-        """Interactive prompt to create a Jira style commit message"""
-        console.print(Panel("Create a Jira style commit message", title="Commit Message"))
+        """
+        Interactive prompt to create a Jira-style commit message.
+
+        This method guides the user through creating a commit message that references
+        a Jira issue ID in the format "PROJ-123: Message". It prompts for the
+        Jira project key, issue number, and commit message details.
+
+        The method will validate that the project key is among the configured
+        allowed project keys if they are specified in the configuration.
+
+        Args:
+            config: Configuration dictionary with Jira format settings such as
+                   project keys and message length limits.
+
+        Returns:
+            str: A properly formatted Jira-style commit message.
+        """
+        console.print(Panel("Create a Jira-style commit message", title="Commit Message"))
+
+        # Rest of the implementation...
 
         # Get Jira issue ID
         require_issue_id = config.get("require_issue_id", True)

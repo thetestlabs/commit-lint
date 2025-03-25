@@ -1,5 +1,11 @@
-import yaml
-import tomli  # Import at the top level since we'll always need it now
+"""
+Configuration management for commit-lint.
+
+This module handles loading and parsing configuration from various sources,
+with support for both pyproject.toml and standalone commit-lint.toml files.
+"""
+
+import tomli
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 
@@ -7,7 +13,12 @@ from pydantic import Field, BaseModel
 
 
 class CommitConfig(BaseModel):
-    """Configuration model for commit message format."""
+    """
+    Configuration model for commit message format.
+
+    This Pydantic model defines the schema for commit-lint configuration,
+    with type validation and default values.
+    """
 
     types: List[str] = Field(..., description="Valid commit types")
     max_subject_length: int = Field(100, description="Maximum subject line length")
@@ -24,7 +35,17 @@ class CommitConfig(BaseModel):
 
 
 def get_default_config_path() -> Path:
-    """Get the default configuration file path."""
+    """
+    Get the default configuration file path.
+
+    This function determines where to look for configuration files by default.
+    It first checks for pyproject.toml, then commit-lint.toml in the current
+    working directory.
+
+    Returns:
+        Path: The path to the default configuration file, even if it doesn't exist yet.
+             Preference is given to pyproject.toml if it exists.
+    """
     # Look for pyproject.toml first, then commit-lint.toml
     current_dir = Path.cwd()
 
@@ -43,7 +64,16 @@ def get_default_config_path() -> Path:
 
 
 def get_config_paths() -> List[Path]:
-    """Get all possible configuration file paths in priority order."""
+    """
+    Get all possible configuration file paths in priority order.
+
+    This function returns a list of all potential configuration file paths,
+    searching the current directory and all parent directories. Paths are
+    ordered by priority, with pyproject.toml taking precedence in each directory.
+
+    Returns:
+        List[Path]: Ordered list of possible configuration file paths.
+    """
     current_dir = Path.cwd()
     paths = []
 
@@ -64,7 +94,25 @@ def get_config_paths() -> List[Path]:
 
 
 def load_config(config_path: Optional[Path] = None) -> Dict[str, Any]:
-    """Load configuration from file or search for it."""
+    """
+    Load configuration from file or search for it.
+
+    This function attempts to load configuration from either a specified path
+    or by searching for configuration files in standard locations. It supports
+    both pyproject.toml (with [tool.commit_lint] section) and standalone TOML files.
+
+    Args:
+        config_path: Optional explicit path to a configuration file.
+                    If None, configuration will be searched for automatically.
+
+    Returns:
+        Dict[str, Any]: The loaded configuration dictionary.
+                       If no configuration is found, default values are returned.
+
+    Raises:
+        FileNotFoundError: If a specific config_path is provided but the file doesn't exist.
+        ValueError: If there is an error parsing the configuration file.
+    """
     config_data = {}
 
     # If specific path provided, only try that file
@@ -111,7 +159,15 @@ def load_config(config_path: Optional[Path] = None) -> Dict[str, Any]:
 
 
 def get_default_config() -> Dict[str, Any]:
-    """Get default configuration"""
+    """
+    Get default configuration settings.
+
+    This function returns the default configuration used when no configuration
+    file is found. It provides sensible defaults for Conventional Commits format.
+
+    Returns:
+        Dict[str, Any]: Default configuration dictionary with conventional commit settings.
+    """
     return {
         "format_type": "conventional",
         "types": ["feat", "fix", "docs", "style", "refactor", "perf", "test", "build", "ci", "chore", "revert"],

@@ -348,7 +348,6 @@ def commit(
 ):
     """Create a commit message and commit changes."""
     from .formats import FORMAT_REGISTRY
-    import tempfile
     import subprocess
 
     # Convert string to Path if provided

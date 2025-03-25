@@ -1,3 +1,11 @@
+"""
+GitHub-style commit format implementation.
+
+This module implements validation and generation of GitHub-style commit messages,
+which typically have a concise subject line and optional detailed body,
+potentially with references to GitHub issues (e.g., "Fixes #123").
+"""
+
 import re
 from typing import Dict, Optional, Any
 from rich.panel import Panel
@@ -10,7 +18,17 @@ console = Console()
 
 
 class GitHubCommitResult(CommitFormatResult):
-    """Results specific to GitHub style commit validation"""
+    """
+    Results specific to GitHub style commit validation.
+
+    This class extends the base CommitFormatResult with fields specific
+    to the GitHub commit format, including issue references.
+
+    Attributes:
+        message: The commit message content (subject line)
+        issue_reference: Referenced issue number, if any
+        issue_keyword: Keyword used to reference the issue (e.g., "Fixes")
+    """
 
     message: Optional[str] = None
     issue_reference: Optional[str] = None
@@ -18,13 +36,32 @@ class GitHubCommitResult(CommitFormatResult):
 
 
 class GitHubCommitFormat(CommitFormat):
-    """Implementation of GitHub style commit format"""
+    """
+    Implementation of GitHub style commit format.
+
+    This class validates and generates commit messages that follow the GitHub
+    style, with a concise subject line, optional body, and potential issue
+    references using keywords like "Fixes #123".
+    """
 
     @classmethod
     def get_format_name(cls) -> str:
+        """
+        Return the canonical name of this commit format.
+
+        Returns:
+            str: The string 'github' which identifies this format.
+        """
         return "github"
 
     def __init__(self, config: Dict[str, Any]):
+        """
+        Initialize the GitHub format validator with configuration settings.
+
+        Args:
+            config: Configuration dictionary with settings such as max_subject_length,
+                  imperative_mood, issue_reference_required, and keywords.
+        """
         self.config = config
 
         # GitHub issue reference pattern (e.g., "Fixes #123")
@@ -39,7 +76,21 @@ class GitHubCommitFormat(CommitFormat):
         self.commit_pattern = re.compile(r"^(?P<subject>.+?)(?:\n\n(?P<body>[\s\S]*))?$", re.DOTALL)
 
     def validate(self, commit_message: str) -> GitHubCommitResult:
-        """Validate a commit message according to GitHub style"""
+        """
+        Validate a commit message according to GitHub style.
+
+        This method checks if the message follows GitHub best practices:
+        - Concise subject line under the configured maximum length
+        - Use of imperative mood (if configured)
+        - Proper issue references (if required)
+
+        Args:
+            commit_message: The commit message string to validate.
+
+        Returns:
+            GitHubCommitResult: A result object containing validation status,
+                              any errors, and parsed components of the message.
+        """
         errors = []
 
         # Match against pattern
@@ -88,7 +139,25 @@ class GitHubCommitFormat(CommitFormat):
         )
 
     def prompt_for_message(self, config: Dict[str, Any]) -> str:
-        """Interactive prompt to create a GitHub style commit message"""
+        """
+        Interactive prompt to create a GitHub style commit message.
+
+        This method guides the user through creating a commit message following GitHub's
+        recommended style: a concise subject line, optional detailed description, and
+        optional issue references.
+
+        The method prompts for:
+        - A brief, imperative subject line
+        - An optional detailed description
+        - An optional issue reference using configured keywords (e.g., "Fixes #123")
+
+        Args:
+            config: Configuration dictionary with GitHub format settings such as keywords
+                   for issue references and whether issue references are required.
+
+        Returns:
+            str: A properly formatted GitHub style commit message.
+        """
         console.print(Panel("Create a GitHub style commit message", title="Commit Message"))
 
         # Brief, imperative subject line
