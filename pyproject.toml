@@ -52,6 +52,8 @@ requires-poetry = ">=2.0"
 
 [tool.poetry.group.dev.dependencies]
 python-semantic-release = "v9.21.0"
+pytest = "^8.3.5"
+pytest-cov = "^6.0.0"
 
 [tool.bandit]
 targets = ["commit_lint"]

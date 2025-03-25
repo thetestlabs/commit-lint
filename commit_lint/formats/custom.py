@@ -108,7 +108,7 @@ class CustomCommitFormat(CommitFormat):
             # Create a regex to find named groups in the pattern
             group_finder = re.compile(r"\(\?P<([^>]+)>")
             return group_finder.findall(pattern)
-        except:
+        except re.error:
             return []
 
     def validate(self, commit_message: str) -> CustomCommitResult:

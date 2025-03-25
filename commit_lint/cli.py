@@ -3,10 +3,14 @@ import subprocess
 from typing import List, Optional
 from pathlib import Path
 from importlib.metadata import version as get_version
+from importlib.metadata import PackageNotFoundError
 
 import typer
+import tomli
 from rich.panel import Panel
 from rich.console import Console
+from rich.table import Table
+from rich.markdown import Markdown
 
 from .config import load_config
 from .formats import get_commit_format
@@ -14,12 +18,9 @@ from .formats import get_commit_format
 # Get version from package metadata
 try:
     __version__ = get_version("commit-lint")
-except ImportError:
-    # During development, fallback to version in package's __init__.py
-    try:
-        from . import __version__
-    except (ImportError, AttributeError):
-        __version__ = "unknown"
+except (ImportError, PackageNotFoundError):
+    # During development, fallback to a default version
+    __version__ = "0.1.0.dev0"
 
 app = typer.Typer(
     help="""A configurable linter for better commit messages.
@@ -44,9 +45,6 @@ def version_callback(value: bool):
 def show_rules_callback(value: bool):
     """Display validation rules for all supported commit message formats."""
     if value:
-        from rich.table import Table
-        from rich.markdown import Markdown
-
         console.print("\n[bold]Commit Message Validation Rules[/bold]\n")
 
         # Display rules for Conventional Commits
@@ -616,31 +614,34 @@ def init(
     if format_type == "conventional":
         config.update(
             {
-                "types": ["feat", "fix", "docs", "style", "refactor", "perf", "test", "build", "ci", "chore", "revert"],
-                "max_subject_length": 100,
+                "types": ",".join(
+                    ["feat", "fix", "docs", "style", "refactor", "perf", "test", "build", "ci", "chore", "revert"]
+                ),
+                "max_subject_length": "100",
                 "subject_case": "lower",
-                "scope_required": False,
-                "allowed_breaking_changes": ["feat", "fix"],
-                "no_period_end": True,
+                "scope_required": "False",
+                "allowed_breaking_changes": ",".join(["feat", "fix"]),
+                "no_period_end": "True",
             }
         )
     elif format_type == "github":
         config.update(
             {
-                "max_subject_length": 72,
-                "imperative_mood": True,
-                "issue_reference_required": False,
-                "keywords": ["Fixes", "Closes", "Resolves"],
+                "max_subject_length": "72",
+                "imperative_mood": "True",
+                "issue_reference_required": "False",
+                "keywords": ",".join(["Fixes", "Closes", "Resolves"]),
             }
         )
     elif format_type == "jira":
-        config.update({"jira_project_keys": ["PROJ"], "require_issue_id": True, "max_message_length": 72})
+        config.update({"jira_project_keys": ",".join(["PROJ"]), "require_issue_id": "True", "max_message_length": "72"})
     elif format_type == "custom":
         config.update(
             {
                 "custom_pattern": "^\\[(?P<category>\\w+)\\] (?P<message>.+)$",
                 "message_template": "[{category}] {message}",
-                "prompts": {"category": "Category (e.g. FEATURE, BUGFIX)", "message": "Commit message"},
+                "category_prompt": "Category (e.g. FEATURE, BUGFIX)",
+                "message_prompt": "Commit message",
             }
         )
 
@@ -652,8 +653,8 @@ def init(
                 with open(output_file, "rb") as f:
                     try:
                         existing_config = tomli.load(f)
-                    except:
-                        console.print("[bold red]Error reading existing pyproject.toml[/bold red]")
+                    except Exception as e:
+                        console.print(f"[bold red]Error reading existing pyproject.toml: {e}[/bold red]")
                         raise typer.Exit(code=1)
 
                 # Update with tool.commit_lint section
