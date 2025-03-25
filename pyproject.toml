@@ -1,0 +1,116 @@
+[project]
+name = "commit-lint"
+version = "v0.1.0"
+description = "A configurable linter for better commit messages"
+authors = [
+    {name = "Chris McQuaid",email = "chris@thetestlabs.io"}
+]
+readme = "README.md"
+requires-python = ">=3.9,<4.0"
+license = {text = "MIT"}
+dependencies = [
+    "pydantic (>=2.10.6,<3.0.0)",
+    "typer (>=0.15.2,<0.16.0)",
+    "questionary (>=2.1.0,<3.0.0)",
+    "pyyaml (>=6.0.2,<7.0.0)",
+    "rich (>=13.9.4,<14.0.0)",
+    "tomli (>=2.2.1,<3.0.0)",
+    "tomli-w (>=1.2.0,<2.0.0)"
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Version Control :: Git",
+    "Topic :: Software Development :: Quality Assurance",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+
+[project.scripts]
+commit-lint = "commit_lint.cli:app"
+
+[project.urls]
+changelog = "https://github.com/python-semantic-release/python-semantic-release/blob/master/CHANGELOG.md"
+documentation = "https://python-semantic-release.readthedocs.io"
+homepage = "https://python-semantic-release.readthedocs.io"
+issues = "https://github.com/python-semantic-release/python-semantic-release/issues"
+repository = "http://github.com/python-semantic-release/python-semantic-release.git"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+requires-poetry = ">=2.0"
+# TODO: add [tool.poetry.group.test.dependencies]
+
+[tool.poetry.group.dev.dependencies]
+python-semantic-release = "v9.21.0"
+
+[tool.bandit]
+targets = ["commit_lint"]
+exclude_dirs = ["tests"]
+
+[tool.ruff]
+fix = true
+line-length = 120
+src = ["commit_lint", "test"]
+
+[tool.ruff.format]
+docstring-code-format = true
+line-ending = "lf"
+
+[tool.ruff.lint]
+allowed-confusables = ["−", "∗"]
+
+[tool.ruff.lint.isort]
+case-sensitive = true
+force-wrap-aliases = true
+length-sort = true
+
+[tool.ruff.lint.mccabe]
+max-complexity = 5
+
+[tool.semantic_release]
+build_command = """
+    pip install poetry
+    poetry install
+    poetry lock
+    poetry check
+    poetry build
+"""
+major_on_zero = true
+tag_format = "v{version}"
+version_toml = ["pyproject.toml:project.version:tf"]
+
+[tool.semantic_release.changelog.default_templates]
+mask_initial_release = true
+
+[tool.commit_lint]
+# Common configuration
+format_type = "conventional"  # or "github", "jira", "custom"
+
+# Conventional Commits format config
+types = ["feat", "fix", "docs", "style", "refactor", "perf", "test", "build", "ci", "chore", "revert"]
+max_subject_length = 100
+subject_case = "lower"
+scope_required = false
+allowed_breaking_changes = ["feat", "fix"]
+no_period_end = true
+
+# GitHub style config (applicable when format_type = "github")
+issue_reference_required = false
+keywords = ["Fixes", "Closes", "Resolves"]
+
+# Jira style config (applicable when format_type = "jira")
+jira_project_keys = ["PROJ", "TEST"]
+require_issue_id = true
+
+# Custom format config
+custom_pattern = "^\\[\\w+\\] .+$"  # For fully custom formats
