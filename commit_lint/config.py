@@ -1,4 +1,5 @@
 import yaml
+import tomli  # Import at the top level since we'll always need it now
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 
@@ -24,7 +25,7 @@ class CommitConfig(BaseModel):
 
 def get_default_config_path() -> Path:
     """Get the default configuration file path."""
-    # Look for pyproject.toml first, then YAML configs
+    # Look for pyproject.toml first, then commit-lint.toml
     current_dir = Path.cwd()
 
     # Check for pyproject.toml in current directory
@@ -32,11 +33,10 @@ def get_default_config_path() -> Path:
     if pyproject_path.exists():
         return pyproject_path
 
-    # Look for YAML configs (for backward compatibility)
-    for name in [".commit-lint.yaml", ".commit-lint.yml"]:
-        yaml_path = current_dir / name
-        if yaml_path.exists():
-            return yaml_path
+    # Look for standalone commit-lint.toml
+    commit_lint_path = current_dir / "commit-lint.toml"
+    if commit_lint_path.exists():
+        return commit_lint_path
 
     # Default to pyproject.toml even if it doesn't exist
     return pyproject_path
@@ -47,16 +47,16 @@ def get_config_paths() -> List[Path]:
     current_dir = Path.cwd()
     paths = []
 
-    # First check for pyproject.toml in current and parent directories
+    # Check for config files in current and parent directories
     dir_path = current_dir
     while dir_path != dir_path.parent:
+        # First check pyproject.toml
         pyproject_path = dir_path / "pyproject.toml"
         paths.append(pyproject_path)
 
-        # Also check legacy YAML files for backward compatibility
-        for name in [".commit-lint.yaml", ".commit-lint.yml"]:
-            yaml_path = dir_path / name
-            paths.append(yaml_path)
+        # Then check standalone commit-lint.toml
+        commit_lint_path = dir_path / "commit-lint.toml"
+        paths.append(commit_lint_path)
 
         dir_path = dir_path.parent
 
@@ -72,40 +72,36 @@ def load_config(config_path: Optional[Path] = None) -> Dict[str, Any]:
         if not config_path.exists():
             raise FileNotFoundError(f"Config file not found: {config_path}")
 
-        if config_path.name == "pyproject.toml":
-            try:
-                import tomli
-
-                with open(config_path, "rb") as f:
+        try:
+            with open(config_path, "rb") as f:
+                if config_path.name == "pyproject.toml":
+                    # Extract from [tool.commit_lint] section
                     pyproject = tomli.load(f)
                     config_data = pyproject.get("tool", {}).get("commit_lint", {})
-            except ImportError:
-                raise ImportError(
-                    "The tomli package is required to read pyproject.toml. Install with 'pip install tomli'"
-                )
-        elif config_path.suffix in [".yaml", ".yml"]:
-            with open(config_path, "r") as f:
-                config_data = yaml.safe_load(f)
+                else:
+                    # Standalone TOML file - load directly
+                    config_data = tomli.load(f)
+        except Exception as e:
+            raise ValueError(f"Error parsing {config_path}: {str(e)}")
     else:
         # Search for config files in priority order
         for path in get_config_paths():
             if path.exists():
-                if path.name == "pyproject.toml":
-                    try:
-                        import tomli
-
-                        with open(path, "rb") as f:
+                try:
+                    with open(path, "rb") as f:
+                        if path.name == "pyproject.toml":
+                            # Extract from [tool.commit_lint] section
                             pyproject = tomli.load(f)
                             config_data = pyproject.get("tool", {}).get("commit_lint", {})
                             if config_data:  # Only use if section exists
                                 break
-                    except ImportError:
-                        # If tomli not available, continue to look for YAML configs
-                        pass
-                elif path.suffix in [".yaml", ".yml"]:
-                    with open(path, "r") as f:
-                        config_data = yaml.safe_load(f)
-                        break
+                        else:
+                            # Standalone TOML file - load directly
+                            config_data = tomli.load(f)
+                            break
+                except Exception:
+                    # Continue to next file on parsing error
+                    continue
 
     # If no config found, use defaults
     if not config_data:

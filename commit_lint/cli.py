@@ -41,6 +41,105 @@ def version_callback(value: bool):
         raise typer.Exit()
 
 
+def show_rules_callback(value: bool):
+    """Display validation rules for all supported commit message formats."""
+    if value:
+        from rich.table import Table
+        from rich.markdown import Markdown
+
+        console.print("\n[bold]Commit Message Validation Rules[/bold]\n")
+
+        # Display rules for Conventional Commits
+        console.print(Markdown("## Conventional Commits Format"))
+        conventional_table = Table(show_header=True, header_style="bold")
+        conventional_table.add_column("Rule", style="dim")
+        conventional_table.add_column("Description")
+        conventional_table.add_column("Config Option", style="dim")
+
+        conventional_table.add_row("Format pattern", "Must follow `type(scope)?: description` format", "-")
+        conventional_table.add_row(
+            "Type validation", "Type must be one of the predefined types", 'types = ["feat", "fix", ...]'
+        )
+        conventional_table.add_row(
+            "Scope requirement", "Scope can be required or optional", "scope_required = true/false"
+        )
+        conventional_table.add_row(
+            "Allowed scopes", "Scope must be in allowed list (if specified)", 'allowed_scopes = ["api", "ui", ...]'
+        )
+        conventional_table.add_row(
+            "Breaking changes", "Only allowed for specific types", 'allowed_breaking_changes = ["feat", "fix"]'
+        )
+        conventional_table.add_row(
+            "Subject length", "Subject line must not exceed maximum length", "max_subject_length = 100"
+        )
+        conventional_table.add_row(
+            "Subject case", "Subject must start with specified case", 'subject_case = "lower"/"upper"'
+        )
+        conventional_table.add_row("No period", "Subject should not end with period", "no_period_end = true/false")
+        console.print(conventional_table)
+
+        # Display rules for GitHub style
+        console.print(Markdown("## GitHub Style Format"))
+        github_table = Table(show_header=True, header_style="bold")
+        github_table.add_column("Rule", style="dim")
+        github_table.add_column("Description")
+        github_table.add_column("Config Option", style="dim")
+
+        github_table.add_row(
+            "Subject length", "Brief, concise subject line (usually 50-72 chars)", "max_subject_length = 72"
+        )
+        github_table.add_row(
+            "Imperative mood", 'Use imperative verbs like "Add" not "Added"', "imperative_mood = true/false"
+        )
+        github_table.add_row(
+            "Issue references", 'Refs with keywords: "Fixes #123"', 'keywords = ["Fixes", "Closes", ...]'
+        )
+        github_table.add_row(
+            "Required reference", "Issue reference can be required", "issue_reference_required = false/true"
+        )
+        console.print(github_table)
+
+        # Display rules for Jira style
+        console.print(Markdown("## Jira Style Format"))
+        jira_table = Table(show_header=True, header_style="bold")
+        jira_table.add_column("Rule", style="dim")
+        jira_table.add_column("Description")
+        jira_table.add_column("Config Option", style="dim")
+
+        jira_table.add_row(
+            "Issue ID", "Must start with Jira issue ID (e.g., PROJ-123)", "require_issue_id = true/false"
+        )
+        jira_table.add_row(
+            "Project keys", "Issue ID must match project keys (if specified)", 'jira_project_keys = ["PROJ", "TEST"]'
+        )
+        jira_table.add_row("Message length", "Message part must not exceed max length", "max_message_length = 72")
+        console.print(jira_table)
+
+        # Display rules for Custom format
+        console.print(Markdown("## Custom Format"))
+        custom_table = Table(show_header=True, header_style="bold")
+        custom_table.add_column("Rule", style="dim")
+        custom_table.add_column("Description")
+        custom_table.add_column("Config Option", style="dim")
+
+        custom_table.add_row(
+            "Pattern matching",
+            "Commit message must match the provided regex pattern",
+            'custom_pattern = "^\\\\[\\\\w+\\\\] .+$"',
+        )
+        console.print(custom_table)
+
+        # Example config in pyproject.toml
+        console.print(Markdown("## Example Configuration"))
+        console.print(
+            Markdown(
+                '```toml\n[tool.commit_lint]\n# Common configuration\nformat_type = "conventional"  # or "github", "jira", "custom"\n\n# Format-specific settings\ntypes = ["feat", "fix", "docs"]\nmax_subject_length = 100\nscope_required = false\n```'
+            )
+        )
+
+        raise typer.Exit()
+
+
 # Add version option to all commands
 @app.callback()
 def main(
@@ -50,6 +149,14 @@ def main(
         "-v",
         help="Show the application version and exit.",
         callback=version_callback,
+        is_eager=True,
+    ),
+    show_rules: bool = typer.Option(
+        False,
+        "--show-rules",
+        "-r",
+        help="Show validation rules for all formats.",
+        callback=show_rules_callback,
         is_eager=True,
     ),
 ):
@@ -494,7 +601,7 @@ def init(
 ):
     """Create a new configuration file with default settings."""
     from .formats import FORMAT_REGISTRY
-    import yaml
+    import tomli_w
 
     # Check if the selected format is valid
     if format_type not in FORMAT_REGISTRY:
@@ -529,42 +636,48 @@ def init(
         )
     elif format_type == "jira":
         config.update({"jira_project_keys": ["PROJ"], "require_issue_id": True, "max_message_length": 72})
+    elif format_type == "custom":
+        config.update(
+            {
+                "custom_pattern": "^\\[(?P<category>\\w+)\\] (?P<message>.+)$",
+                "message_template": "[{category}] {message}",
+                "prompts": {"category": "Category (e.g. FEATURE, BUGFIX)", "message": "Commit message"},
+            }
+        )
 
-    # Write to pyproject.toml or yaml file
-    if output_file.name == "pyproject.toml":
-        # Check if file exists and read it first
-        if output_file.exists():
-            with open(output_file, "rb") as f:
-                try:
-                    import tomli
+    # Write to file
+    try:
+        if output_file.name == "pyproject.toml":
+            # Check if file exists and read it first
+            if output_file.exists():
+                with open(output_file, "rb") as f:
+                    try:
+                        existing_config = tomli.load(f)
+                    except:
+                        console.print("[bold red]Error reading existing pyproject.toml[/bold red]")
+                        raise typer.Exit(code=1)
 
-                    existing_config = tomli.load(f)
-                except Exception as e:
-                    console.print(f"[bold red]Error reading existing pyproject.toml: {e}[/bold red]")
-                    raise typer.Exit(code=1)
+                # Update with tool.commit_lint section
+                if "tool" not in existing_config:
+                    existing_config["tool"] = {}
+                existing_config["tool"]["commit_lint"] = config
 
-            # Update with tool.commit_lint section
-            if "tool" not in existing_config:
-                existing_config["tool"] = {}
-            existing_config["tool"]["commit_lint"] = config
-
-            # Write back
-            import tomli_w
-
-            with open(output_file, "wb") as f:
-                tomli_w.dump(existing_config, f)
+                # Write back
+                with open(output_file, "wb") as f:
+                    tomli_w.dump(existing_config, f)
+            else:
+                # Create new file
+                with open(output_file, "wb") as f:
+                    tomli_w.dump({"tool": {"commit_lint": config}}, f)
         else:
-            # Create new file
-            import tomli_w
-
+            # Write standalone TOML file
             with open(output_file, "wb") as f:
-                tomli_w.dump({"tool": {"commit_lint": config}}, f)
-    else:
-        # Handle YAML output for backwards compatibility
-        with open(output_file, "w") as f:
-            yaml.dump(config, f, default_flow_style=False)
+                tomli_w.dump(config, f)
 
-    console.print(f"[bold green]Configuration created at {output_file}[/bold green]")
+        console.print(f"[bold green]Configuration created at {output_file}[/bold green]")
+    except Exception as e:
+        console.print(f"[bold red]Failed to write configuration:[/bold red] {str(e)}")
+        raise typer.Exit(code=1)
 
 
 if __name__ == "__main__":
