@@ -83,6 +83,14 @@ jobs:
           poetry lock
           poetry check
 
+      - name: Run tests with coverage
+        run: pytest --cov --cov-branch --cov-report=xml
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5.4.0
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
       - name: Action | Semantic Version Release
         id: release
         # Adjust tag with desired version if applicable.
