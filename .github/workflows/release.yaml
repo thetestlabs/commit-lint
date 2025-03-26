@@ -102,8 +102,9 @@ jobs:
           github_token: ${{ secrets.RELEASE_TOKEN }}
           git_committer_name: "github-actions"
           git_committer_email: "actions@users.noreply.github.com"
-          tag: v0.1.1
+          tag: true
           vcs_release: true
+          type: patch
 
       - name: Publish | Upload package to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1.12
