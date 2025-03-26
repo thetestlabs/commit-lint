@@ -102,7 +102,7 @@ jobs:
           github_token: ${{ secrets.RELEASE_TOKEN }}
           git_committer_name: "github-actions"
           git_committer_email: "actions@users.noreply.github.com"
-          tag: true
+          tag: v0.1.1
           vcs_release: true
 
       - name: Publish | Upload package to PyPI
