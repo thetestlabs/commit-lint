@@ -79,7 +79,7 @@ jobs:
       - name: Setup | Install Poetry and ensure consistency
         run: |
           pip install poetry
-          poetry install
+          poetry install --with dev
           poetry lock
           poetry check
 
