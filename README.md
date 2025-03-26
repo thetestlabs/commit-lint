@@ -1,3 +1,5 @@
+[![codecov](https://codecov.io/gh/thetestlabs/commit-lint/graph/badge.svg?token=6DA1WBQZ8J)](https://codecov.io/gh/thetestlabs/commit-lint)
+
 # commit-lint
 A configurable linter for better commit messages
 
