@@ -85,7 +85,8 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          pip install pytest pytest-cov
+          pip install pytest pytest-cov typer tomli 
+          poetry build
           pytest --cov --cov-branch --cov-report=xml
 
       - name: Upload coverage to Codecov
