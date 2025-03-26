@@ -104,7 +104,7 @@ jobs:
           git_committer_email: "actions@users.noreply.github.com"
           tag: true
           vcs_release: true
-          type: patch
+          force: patch
 
       - name: Publish | Upload package to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1.12
