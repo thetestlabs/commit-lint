@@ -95,6 +95,11 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
+      - name: Upload code coverage to Codacy
+        run: |
+          export CODACY_PROJECT_TOKEN=${{ secrets.CODACY_API_TOKEN }}
+          (curl -Ls https://coverage.codacy.com/get.sh) report -r ./coverage.xml
+
       - name: Action | Semantic Version Release
         id: release
         # Adjust tag with desired version if applicable.
