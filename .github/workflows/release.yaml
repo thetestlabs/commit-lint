@@ -85,7 +85,7 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          pip install pytest pytest-cov typer tomli pydantic
+          pip install pytest pytest-cov typer tomli pydantic questionary
           poetry build
           pytest --cov --cov-branch --cov-report=xml
 
