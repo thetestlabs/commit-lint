@@ -85,7 +85,7 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          pip install pytest pytest-cov typer tomli pydantic questionary
+          pip install pytest pytest-cov typer tomli pydantic questionary pyyaml
           pip install -i https://test.pypi.org/simple/ commit-lint==0.1.1
           poetry build
           pytest --cov --cov-branch --cov-report=xml
