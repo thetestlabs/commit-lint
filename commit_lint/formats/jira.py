@@ -7,7 +7,7 @@ It supports configurable project keys and message formatting rules.
 """
 
 import re
-from typing import Dict, Optional, Any
+from typing import Dict, Optional, Any, List
 from rich.panel import Panel
 from rich.prompt import Prompt, Confirm
 from rich.console import Console
@@ -129,43 +129,43 @@ class JiraCommitFormat(CommitFormat):
     def prompt_for_message(self, config: Dict[str, Any]) -> str:
         """
         Interactive prompt to create a Jira-style commit message.
-
-        This method guides the user through creating a commit message that references
-        a Jira issue ID in the format "PROJ-123: Message". It prompts for the
-        Jira project key, issue number, and commit message details.
-
-        The method will validate that the project key is among the configured
-        allowed project keys if they are specified in the configuration.
-
-        Args:
-            config: Configuration dictionary with Jira format settings such as
-                   project keys and message length limits.
-
-        Returns:
-            str: A properly formatted Jira-style commit message.
         """
         console.print(Panel("Create a Jira-style commit message", title="Commit Message"))
 
-        # Rest of the implementation...
+        # Get message components using helper methods
+        issue_id = self._prompt_for_issue_id(config)
+        message = self._prompt_for_message_content()
+        body = self._prompt_for_body()
 
-        # Get Jira issue ID
+        # Assemble the final message
+        return self._assemble_message(issue_id, message, body)
+
+    def _prompt_for_issue_id(self, config: Dict[str, Any]) -> str:
+        """Get Jira issue ID from user."""
+        issue_id = ""
         require_issue_id = config.get("require_issue_id", True)
         jira_project_keys = config.get("jira_project_keys", [])
 
-        issue_id = ""
         if require_issue_id or Confirm.ask("Include Jira issue ID?", default=True):
-            if jira_project_keys:
-                project_key = Prompt.ask("Jira project key", choices=jira_project_keys, default=jira_project_keys[0])
-            else:
-                project_key = Prompt.ask("Jira project key")
-
+            project_key = self._get_project_key(jira_project_keys)
             issue_number = Prompt.ask("Issue number")
             issue_id = f"{project_key}-{issue_number}"
 
-        # Get commit message
-        message = Prompt.ask("Commit message")
+        return issue_id
 
-        # Get optional body
+    def _get_project_key(self, jira_project_keys: List[str]) -> str:
+        """Get Jira project key from user, with validation if needed."""
+        if jira_project_keys:
+            return Prompt.ask("Jira project key", choices=jira_project_keys, default=jira_project_keys[0])
+        else:
+            return Prompt.ask("Jira project key")
+
+    def _prompt_for_message_content(self) -> str:
+        """Get the commit message content."""
+        return Prompt.ask("Commit message")
+
+    def _prompt_for_body(self) -> str:
+        """Get optional detailed commit description."""
         body = ""
         if Confirm.ask("Add detailed description?", default=False):
             console.print("Enter detailed description (empty line to finish):")
@@ -177,8 +177,10 @@ class JiraCommitFormat(CommitFormat):
                 body_lines.append(line)
             if body_lines:
                 body = "\n".join(body_lines)
+        return body
 
-        # Assemble message
+    def _assemble_message(self, issue_id: str, message: str, body: str) -> str:
+        """Assemble final commit message from components."""
         if issue_id:
             formatted_message = f"{issue_id}: {message}"
         else:
