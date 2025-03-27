@@ -1,6 +1,6 @@
 [project]
 name = "commit-lint"
-version = "v0.1.1"
+version = "v0.1.2"
 description = "A configurable linter for better commit messages"
 authors = [
     {name = "Chris McQuaid",email = "chris@thetestlabs.io"}

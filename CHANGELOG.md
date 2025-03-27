@@ -1,6 +1,92 @@
 # CHANGELOG
 
 
+## v0.1.2 (2025-03-27)
+
+### Bug Fixes
+
+- Remove duplicate decorators
+  ([`1a3a1c9`](https://github.com/thetestlabs/commit-lint/commit/1a3a1c9b052cfd0f55968fd68fdf079a3a502167))
+
+- Removed unused imports
+  ([`84af8a7`](https://github.com/thetestlabs/commit-lint/commit/84af8a7de79e0920cd4f257c2df014efc9bcd320))
+
+- Resolve issue where breaking change info is not added to the footer
+  ([`7f22b72`](https://github.com/thetestlabs/commit-lint/commit/7f22b726748faf2efc6ae7d092a5ff926450dc3d))
+
+### Chores
+
+- Fix rebase
+  ([`89d0b8d`](https://github.com/thetestlabs/commit-lint/commit/89d0b8d0ec4eb5c6fc6d009610bb82e5b77656e3))
+
+- Remove codacy config file
+  ([`f1854e9`](https://github.com/thetestlabs/commit-lint/commit/f1854e90f0837593ad5855c936c90eea1896d964))
+
+### Continuous Integration
+
+- Add Codacity badge to README
+  ([`3b37906`](https://github.com/thetestlabs/commit-lint/commit/3b37906d7d27a592636cbaff0ed494f0feabc0e8))
+
+- Add Codacity config file to ignore assert statements used by pytest
+  ([`ff989d2`](https://github.com/thetestlabs/commit-lint/commit/ff989d2531d6b220c10dbd016a9e1dd03f8e9fde))
+
+- Add step to upload test coverage report to Codacy
+  ([`19be44a`](https://github.com/thetestlabs/commit-lint/commit/19be44a2a75637b63ec3d156258d60268212b82d))
+
+- Fix issue with uploading code coverage to Codacy
+  ([`63efdb0`](https://github.com/thetestlabs/commit-lint/commit/63efdb07d796e64f0fd9e8afc4d27a7c4eba7c0a))
+
+- Fix issue with uploading code coverage to Codacy
+  ([`3a70c93`](https://github.com/thetestlabs/commit-lint/commit/3a70c93e6b6946934362cc237858af1af12350a9))
+
+- Trigger build
+  ([`8821a04`](https://github.com/thetestlabs/commit-lint/commit/8821a043bcc6928b918a36381ab816256c266af9))
+
+- Trigger build
+  ([`1c20624`](https://github.com/thetestlabs/commit-lint/commit/1c206247faa27fe229fb6b5fff4a24087bd2731a))
+
+- Trigger build
+  ([`9b482b4`](https://github.com/thetestlabs/commit-lint/commit/9b482b4a28a227878680b4cd646652a3939b20c3))
+
+- Trigger build
+  ([`c17f165`](https://github.com/thetestlabs/commit-lint/commit/c17f1650b6f999c563a71705bbb49361970a3dcd))
+
+- Troubleshoot issues with missing dependencies
+  ([`a3a8430`](https://github.com/thetestlabs/commit-lint/commit/a3a84308e1dfea7a70c344adb035463f9cb8de92))
+
+- Troubleshoot issues with missing dependencies
+  ([`83b3625`](https://github.com/thetestlabs/commit-lint/commit/83b3625005ff42347c3ec97af546ad4d2f0f44da))
+
+- Troubleshoot issues with missing dependencies
+  ([`7276925`](https://github.com/thetestlabs/commit-lint/commit/7276925656c3b73b8fc25b491229adb660a95c72))
+
+- Troubleshoot issues with missing dependencies
+  ([`f536ac7`](https://github.com/thetestlabs/commit-lint/commit/f536ac713a70f41a08a91b3d04cb9cae83716e3c))
+
+- Troubleshoot issues with missing dependencies
+  ([`87bbce7`](https://github.com/thetestlabs/commit-lint/commit/87bbce7e3d040d22765c3ad98d2709f2f12985be))
+
+- Troubleshoot issues with missing dependencies
+  ([`caaadf3`](https://github.com/thetestlabs/commit-lint/commit/caaadf3b6cc320419e64a143c3a8ece49310ba87))
+
+- Troubleshoot issues with missing dependencies
+  ([`20b121e`](https://github.com/thetestlabs/commit-lint/commit/20b121e594a8c8f2e2e2d53c3442c9b17b61ef8e))
+
+- Update bandit configuration file to exclude the tests directory
+  ([`a3e594d`](https://github.com/thetestlabs/commit-lint/commit/a3e594d6a7898c7bc3cbcfccce66bbcb64b98653))
+
+### Refactoring
+
+- Reduce cyclomatic complexity of methods by using helper functions
+  ([`055257b`](https://github.com/thetestlabs/commit-lint/commit/055257b4f5ac97295f653c69b4c154e209a58d20))
+
+- Remove duplicate code
+  ([`bdb37a1`](https://github.com/thetestlabs/commit-lint/commit/bdb37a18d9725988c8bc8350eb2ff133d183dc21))
+
+- Update code based on rules and format using ruff
+  ([`1fcc057`](https://github.com/thetestlabs/commit-lint/commit/1fcc0577ba6271d724c3a3cec6f1f9e01b633dea))
+
+
 ## v0.1.1 (2025-03-26)
 
 ### Continuous Integration
