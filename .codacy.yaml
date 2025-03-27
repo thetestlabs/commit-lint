@@ -1,5 +1,0 @@
----
-engines:
-  bandit:
-    exclude_paths:
-      - "config/test.yml"
