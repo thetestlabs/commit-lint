@@ -7,7 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-success.svg)](https://opensource.org/licenses/MIT)
 
 # commit-lint
-A configurable linter for better commit messages
+A configurable linter for better commit messages.
 
 # Commit Message Standards and Linting Rules
 
