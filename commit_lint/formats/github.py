@@ -149,7 +149,7 @@ class GitHubCommitFormat(CommitFormat):
         # Get message components using helper methods
         subject = self._prompt_for_subject()
         body = self._prompt_for_body()
-        issue_reference, keyword = self._prompt_for_issue_reference(config)
+        issue_reference, _ = self._prompt_for_issue_reference(config)
 
         # Assemble the final message
         return self._assemble_message(subject, body, issue_reference)
