@@ -276,6 +276,24 @@ class ConventionalCommitFormat(CommitFormat):
                 )
 
         return breaking, breaking_description
+    
+        """Get breaking change flag and description if applicable."""
+        allowed_breaking = config.get("allowed_breaking_changes", [])
+        breaking = False
+        breaking_description = ""
+
+        if type_name in allowed_breaking:
+            breaking = questionary.confirm("Is this a breaking change?", default=False).ask()
+            if breaking:
+                breaking_description = (
+                    questionary.text(
+                        "Describe the breaking change (this will be added to the footer):",
+                        instruction="BREAKING CHANGE:",
+                    ).ask()
+                    or "Breaking changes"
+                )
+
+        return breaking, breaking_description
 
     def _prompt_for_description(self, config: Dict[str, Any]) -> str:
         """Get commit description from user."""
