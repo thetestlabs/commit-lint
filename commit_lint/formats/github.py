@@ -7,7 +7,7 @@ potentially with references to GitHub issues (e.g., "Fixes #123").
 """
 
 import re
-from typing import Dict, Optional, Any
+from typing import Dict, Optional, Any, Tuple
 from rich.panel import Panel
 from rich.prompt import Prompt, Confirm
 from rich.console import Console
@@ -143,30 +143,24 @@ class GitHubCommitFormat(CommitFormat):
     def prompt_for_message(self, config: Dict[str, Any]) -> str:
         """
         Interactive prompt to create a GitHub style commit message.
-
-        This method guides the user through creating a commit message following GitHub's
-        recommended style: a concise subject line, optional detailed description, and
-        optional issue references.
-
-        The method prompts for:
-        - A brief, imperative subject line
-        - An optional detailed description
-        - An optional issue reference using configured keywords (e.g., "Fixes #123")
-
-        Args:
-            config: Configuration dictionary with GitHub format settings such as keywords
-                   for issue references and whether issue references are required.
-
-        Returns:
-            str: A properly formatted GitHub style commit message.
         """
         console.print(Panel("Create a GitHub style commit message", title="Commit Message"))
 
-        # Brief, imperative subject line
-        console.print("Enter a brief, imperative subject line (what the commit does, not what you did)")
-        subject = Prompt.ask("Subject")
+        # Get message components using helper methods
+        subject = self._prompt_for_subject()
+        body = self._prompt_for_body()
+        issue_reference, keyword = self._prompt_for_issue_reference(config)
 
-        # Body - optional detailed description
+        # Assemble the final message
+        return self._assemble_message(subject, body, issue_reference)
+
+    def _prompt_for_subject(self) -> str:
+        """Get the commit subject line from user."""
+        console.print("Enter a brief, imperative subject line (what the commit does, not what you did)")
+        return Prompt.ask("Subject")
+
+    def _prompt_for_body(self) -> str:
+        """Get optional detailed commit description."""
         body = ""
         if Confirm.ask("Add detailed description?", default=False):
             console.print("Enter detailed description (empty line to finish):")
@@ -180,9 +174,13 @@ class GitHubCommitFormat(CommitFormat):
                 body_lines.append(line)
             if body_lines:
                 body = "\n".join(body_lines)
+        return body
 
-        # Issue reference if configured/requested
+    def _prompt_for_issue_reference(self, config: Dict[str, Any]) -> Tuple[str, Optional[str]]:
+        """Get optional or required issue reference."""
         issue_reference = ""
+        keyword = None
+
         issue_keywords = config.get("keywords", ["Fixes", "Closes", "Resolves"])
         issue_required = config.get("issue_reference_required", False)
 
@@ -191,15 +189,20 @@ class GitHubCommitFormat(CommitFormat):
             issue_number = Prompt.ask("Issue number")
             issue_reference = f"{keyword} #{issue_number}"
 
-            # Add to subject or body based on length
-            if not body:
-                subject = f"{subject} ({issue_reference})"
-            else:
-                body += f"\n\n{issue_reference}"
+        return issue_reference, keyword
 
-        # Assemble message
+    def _assemble_message(self, subject: str, body: str, issue_reference: str) -> str:
+        """Assemble final commit message from components."""
+        # If there's an issue reference but no body, add to subject line
+        if issue_reference and not body:
+            subject = f"{subject} ({issue_reference})"
+
+        # Construct the message with or without body
         if body:
             message = f"{subject}\n\n{body}"
+            # If there's an issue reference and a body, add to body
+            if issue_reference and not subject.endswith(f"({issue_reference})"):
+                message += f"\n\n{issue_reference}"
         else:
             message = subject
 

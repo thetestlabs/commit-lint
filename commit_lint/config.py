@@ -97,65 +97,87 @@ def load_config(config_path: Optional[Path] = None) -> Dict[str, Any]:
     """
     Load configuration from file or search for it.
 
-    This function attempts to load configuration from either a specified path
-    or by searching for configuration files in standard locations. It supports
-    both pyproject.toml (with [tool.commit_lint] section) and standalone TOML files.
-
     Args:
         config_path: Optional explicit path to a configuration file.
-                    If None, configuration will be searched for automatically.
+                   If None, configuration will be searched for automatically.
 
     Returns:
         Dict[str, Any]: The loaded configuration dictionary.
-                       If no configuration is found, default values are returned.
+                      If no configuration is found, default values are returned.
 
     Raises:
         FileNotFoundError: If a specific config_path is provided but the file doesn't exist.
         ValueError: If there is an error parsing the configuration file.
     """
-    config_data = {}
-
     # If specific path provided, only try that file
     if config_path:
-        if not config_path.exists():
-            raise FileNotFoundError(f"Config file not found: {config_path}")
-
-        try:
-            with open(config_path, "rb") as f:
-                if config_path.name == "pyproject.toml":
-                    # Extract from [tool.commit_lint] section
-                    pyproject = tomli.load(f)
-                    config_data = pyproject.get("tool", {}).get("commit_lint", {})
-                else:
-                    # Standalone TOML file - load directly
-                    config_data = tomli.load(f)
-        except Exception as e:
-            raise ValueError(f"Error parsing {config_path}: {str(e)}")
+        return _load_from_specific_path(config_path)
     else:
         # Search for config files in priority order
-        for path in get_config_paths():
-            if path.exists():
-                try:
-                    with open(path, "rb") as f:
-                        if path.name == "pyproject.toml":
-                            # Extract from [tool.commit_lint] section
-                            pyproject = tomli.load(f)
-                            config_data = pyproject.get("tool", {}).get("commit_lint", {})
-                            if config_data:  # Only use if section exists
-                                break
-                        else:
-                            # Standalone TOML file - load directly
-                            config_data = tomli.load(f)
-                            break
-                except Exception:
-                    # Continue to next file on parsing error
-                    continue
+        return _search_and_load_config()
+
+
+def _load_from_specific_path(config_path: Path) -> Dict[str, Any]:
+    """Load configuration from a specific file path."""
+    if not config_path.exists():
+        raise FileNotFoundError(f"Config file not found: {config_path}")
+
+    return _parse_config_file(config_path)
+
+
+def _search_and_load_config() -> Dict[str, Any]:
+    """Search for and load configuration from standard locations."""
+    # Search for config files in priority order
+    for path in get_config_paths():
+        if path.exists():
+            try:
+                config_data = _parse_config_file(path)
+                if config_data:  # Only use if we got valid config data
+                    return config_data
+            except Exception:
+                # Continue to next file on parsing error
+                continue
 
     # If no config found, use defaults
-    if not config_data:
-        config_data = get_default_config()
+    return get_default_config()
 
-    return config_data
+
+def _parse_config_file(file_path: Path) -> Dict[str, Any]:
+    """
+    Parse a configuration file.
+
+    Args:
+        file_path: Path to the configuration file
+
+    Returns:
+        Dict[str, Any]: Configuration data
+
+    Raises:
+        ValueError: If there is an error parsing the file
+    """
+    try:
+        with open(file_path, "rb") as f:
+            if file_path.name == "pyproject.toml":
+                return _extract_from_pyproject(f)
+            else:
+                # Standalone TOML file - load directly
+                return tomli.load(f)
+    except Exception as e:
+        raise ValueError(f"Error parsing {file_path}: {str(e)}")
+
+
+def _extract_from_pyproject(file_obj) -> Dict[str, Any]:
+    """
+    Extract commit_lint configuration from a pyproject.toml file.
+
+    Args:
+        file_obj: Open file object for pyproject.toml
+
+    Returns:
+        Dict[str, Any]: Configuration data from [tool.commit_lint] section
+    """
+    pyproject = tomli.load(file_obj)
+    return pyproject.get("tool", {}).get("commit_lint", {})
 
 
 def get_default_config() -> Dict[str, Any]:
