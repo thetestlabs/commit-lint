@@ -6,8 +6,6 @@
 [![PyPI Python Versions](https://img.shields.io/pypi/pyversions/poetry.svg)](https://pypi.python.org/pypi/poetry)
 [![License: MIT](https://img.shields.io/badge/License-MIT-success.svg)](https://opensource.org/licenses/MIT)
 
-
-
 # commit-lint
 A configurable linter for better commit messages
 
