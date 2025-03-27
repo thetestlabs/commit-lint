@@ -7,6 +7,7 @@ from importlib.metadata import PackageNotFoundError
 
 import typer
 import tomli
+import tomli_w
 from rich.panel import Panel
 from rich.console import Console
 from rich.table import Table
@@ -130,11 +131,11 @@ def show_rules_callback(value: bool):
 
         # Example config in pyproject.toml
         console.print(Markdown("## Example Configuration"))
-        console.print(
-            Markdown(
-                '```toml\n[tool.commit_lint]\n# Common configuration\nformat_type = "conventional"  # or "github", "jira", "custom"\n\n# Format-specific settings\ntypes = ["feat", "fix", "docs"]\nmax_subject_length = 100\nscope_required = false\n```'
-            )
-        )
+        example_config = ('```toml\n[tool.commit_lint]\n# Common configuration\n'
+                 'format_type = "conventional"  # or "github", "jira", "custom"\n\n'
+                 '# Format-specific settings\ntypes = ["feat", "fix", "docs"]\n'
+                 'max_subject_length = 100\nscope_required = false\n```')
+        console.print(Markdown(example_config))
 
         raise typer.Exit()
 
@@ -376,8 +377,6 @@ def _write_config_to_file(output_file: Path, config: Dict[str, Any]):
 
 def _write_to_pyproject(pyproject_path: Path, config: Dict[str, Any]):
     """Write configuration to a pyproject.toml file."""
-    import tomli
-    import tomli_w
 
     # Check if file exists and read it first
     if pyproject_path.exists():
