@@ -1,8 +1,7 @@
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/thetestlabs/commit-lint/.github%2Fworkflows%2Frelease.yaml)
 [![codecov](https://codecov.io/gh/thetestlabs/commit-lint/graph/badge.svg?token=6DA1WBQZ8J)](https://codecov.io/gh/thetestlabs/commit-lint)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/12d604bbf25d48b2a987daddc5fe2876)](https://app.codacy.com/gh/thetestlabs/commit-lint/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
-![GitHub Workflow Status](https://img.shields.io/github/workflow/status/thetestlabs/commit-lint/CI?label=build)
 ![GitHub commits since latest release (branch)](https://img.shields.io/github/commits-since/thetestlabs/commit-lint/latest/main)
-![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/thetestlabs/commit-lint/.github%2Fworkflows%2Frelease.yaml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 
