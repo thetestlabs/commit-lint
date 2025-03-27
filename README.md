@@ -2,7 +2,10 @@
 [![codecov](https://codecov.io/gh/thetestlabs/commit-lint/graph/badge.svg?token=6DA1WBQZ8J)](https://codecov.io/gh/thetestlabs/commit-lint)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/12d604bbf25d48b2a987daddc5fe2876)](https://app.codacy.com/gh/thetestlabs/commit-lint/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 ![GitHub commits since latest release (branch)](https://img.shields.io/github/commits-since/thetestlabs/commit-lint/latest/main)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![image](https://img.shields.io/pypi/pyversions/ruff.svg)](https://pypi.python.org/pypi/ruff)
+[![Actions status](https://github.com/astral-sh/ruff/workflows/CI/badge.svg)](https://github.com/astral-sh/ruff/actions)
+<a href="https://opensource.org/licenses/MIT"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-success.svg"></a>
 
 
 # commit-lint
