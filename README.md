@@ -1,8 +1,13 @@
+[![Actions status](https://github.com/thetestlabs/commit-lint/workflows/CI/badge.svg)](https://github.com/thetestlabs/commit-lint/actions)
 [![codecov](https://codecov.io/gh/thetestlabs/commit-lint/graph/badge.svg?token=6DA1WBQZ8J)](https://codecov.io/gh/thetestlabs/commit-lint)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/12d604bbf25d48b2a987daddc5fe2876)](https://app.codacy.com/gh/thetestlabs/commit-lint/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
+![GitHub commits since latest release (branch)](https://img.shields.io/github/commits-since/thetestlabs/commit-lint/latest/main)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![PyPI Python Versions](https://img.shields.io/pypi/pyversions/commit-lint.svg)](https://pypi.python.org/pypi/commit-lint)
+[![License: MIT](https://img.shields.io/badge/License-MIT-success.svg)](https://opensource.org/licenses/MIT)
 
 # commit-lint
-A configurable linter for better commit messages
+A configurable linter for better commit messages.
 
 # Commit Message Standards and Linting Rules
 
