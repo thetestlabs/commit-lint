@@ -1,7 +1,9 @@
-import pytest
 from pathlib import Path
-from typer.testing import CliRunner
 from unittest.mock import patch, MagicMock
+
+import pytest
+from typer.testing import CliRunner
+
 from commit_lint.cli import app
 
 
@@ -112,7 +114,7 @@ def test_lint_interactive_fix(runner):
             patch("commit_lint.cli.load_config") as mock_load_config,
             patch("commit_lint.cli.get_commit_format") as mock_get_format,
             patch("typer.confirm") as mock_confirm,
-            patch("typer.echo") as mock_echo,
+            patch("typer.echo"),  # Removed unused variable mock_echo
         ):
             # Both stdout and stdin should report as TTY for interactive mode
             mock_stdout_tty.return_value = True

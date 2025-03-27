@@ -100,7 +100,7 @@ class GitHubCommitFormat(CommitFormat):
 
         # Extract components
         subject = match.group("subject")
-        body = match.group("body")
+        # body = match.group("body")  # Currently unused, commented out
 
         # Validate subject length (GitHub standard is 50 chars, flexible up to 72)
         max_subject_length = self.config.get("max_subject_length", 72)
@@ -128,7 +128,9 @@ class GitHubCommitFormat(CommitFormat):
             issue_reference = issue_match.group("issue")
         elif issue_required:
             keyword_list = ", ".join(self.issue_keywords)
-            errors.append(f"Missing issue reference (e.g., '{self.issue_keywords[0]} #123')")
+            errors.append(
+                f"Missing issue reference (e.g., '{self.issue_keywords[0]} #123'). Use one of: {keyword_list}"
+            )
 
         return GitHubCommitResult(
             valid=len(errors) == 0,

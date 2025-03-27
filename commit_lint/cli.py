@@ -13,6 +13,7 @@ from rich.table import Table
 from rich.markdown import Markdown
 
 from .config import load_config
+from .formats import FORMAT_REGISTRY
 from .formats import get_commit_format
 
 # Get version from package metadata
@@ -175,6 +176,128 @@ def get_staged_files() -> List[str]:
     return [file for file in result.stdout.splitlines() if file.strip()]
 
 
+# Helper functions for CLI commands
+def _load_config_and_format(config_file: Optional[str], format_type: Optional[str]):
+    """Load configuration and create appropriate format validator."""
+
+    # Convert string to Path if provided
+    config_path = Path(config_file) if config_file else None
+
+    try:
+        config = load_config(config_path)
+
+        # Override format type if specified
+        if format_type:
+            if format_type not in FORMAT_REGISTRY:
+                valid_formats = ", ".join(FORMAT_REGISTRY.keys())
+                console.print(f"[bold red]Invalid format type: {format_type}[/bold red]")
+                console.print(f"Valid formats: {valid_formats}")
+                raise typer.Exit(code=1)
+
+            # Override the format type in the config
+            config["format_type"] = format_type
+            console.print(f"[blue]Using format type: {format_type}[/blue]")
+
+        commit_format = get_commit_format(config)
+        return config, commit_format
+    except Exception as e:
+        console.print(f"[bold red]Error loading config:[/bold red] {str(e)}")
+        raise typer.Exit(code=1)
+
+
+def _get_message_from_sources(message: Optional[str], file: Optional[Path]):
+    """Get commit message from available sources (CLI arg, file, or stdin)."""
+
+    if message:
+        # Message provided via command line option
+        return message
+    elif file:
+        if str(file) == "-":
+            # Read from stdin when file is "-"
+            return typer.get_text_stream("stdin").read().strip()
+        elif file.exists():
+            # Read from file
+            return file.read_text().strip()
+        else:
+            console.print(f"[red]Error:[/red] File not found: {file}")
+            raise typer.Exit(code=1)
+    elif not typer.get_text_stream("stdin").isatty():
+        # No message or file specified, but stdin has content
+        return typer.get_text_stream("stdin").read().strip()
+    else:
+        # No message provided
+        console.print("[red]Error:[/red] No message provided")
+        raise typer.Exit(code=1)
+
+
+def _check_staged_changes():
+    """Check if there are staged changes and offer to stage all if needed."""
+    try:
+        diff_result = subprocess.run(
+            ["git", "diff", "--cached", "--name-only"], capture_output=True, text=True, check=True
+        )
+        if not diff_result.stdout.strip():
+            console.print("[bold yellow]Warning: No staged changes to commit.[/bold yellow]")
+            if not typer.confirm("Stage all changes?", default=False):
+                console.print("Use 'git add' to stage changes and try again.")
+                raise typer.Exit(code=1)
+
+            # Stage all changes
+            subprocess.run(["git", "add", "-A"], check=True)
+            console.print("[blue]All changes staged for commit.[/blue]")
+    except subprocess.CalledProcessError as e:
+        console.print(f"[bold red]Failed to check staged changes:[/bold red] {str(e)}")
+        raise typer.Exit(code=1)
+
+
+def _run_git_commit(commit_message: str, skip_hooks: bool):
+    """Execute git commit with the provided message."""
+    # Save message to temp file for git commit
+    with tempfile.NamedTemporaryFile(mode="w", delete=False) as temp:
+        temp_path = Path(temp.name)
+        temp.write(commit_message)
+
+    try:
+        # Prepare git commit command
+        git_cmd = ["git", "commit", "-F", str(temp_path)]
+
+        # Add --no-verify flag if requested to skip hooks
+        if skip_hooks:
+            git_cmd.append("--no-verify")
+            console.print("[yellow]Skipping pre-commit hooks[/yellow]")
+        else:
+            console.print("[blue]Running pre-commit hooks...[/blue]")
+
+        # Execute git commit with the message file
+        commit_process = subprocess.run(git_cmd, capture_output=True, text=True)
+
+        return commit_process, temp_path
+    except Exception as e:
+        # Clean up temp file in case of exception
+        temp_path.unlink(missing_ok=True)
+        raise e
+
+
+def _handle_commit_failure(commit_process, commit_message: str, output_file: Optional[Path]):
+    """Handle git commit failure and potentially save the message."""
+    if "hook" in commit_process.stderr.lower():
+        console.print("[bold red]Pre-commit hooks failed:[/bold red]")
+    else:
+        console.print("[bold red]Git commit failed:[/bold red]")
+
+    console.print(commit_process.stderr)
+    console.print("\nYou can run with --no-verify to skip hooks.")
+
+    # Save the commit message if requested for later use
+    if output_file or typer.confirm("Save commit message for later use?", default=True):
+        output_path = output_file or Path(".git/COMMIT_EDITMSG")
+        with open(output_path, "w") as f:
+            f.write(commit_message)
+        console.print(f"[green]Commit message saved to {output_path}[/green]")
+
+    return 1  # Non-zero return code
+
+
 @app.command()
 def create(
     config_file: Optional[str] = typer.Option(None, "--config", "-c", help="Path to config file"),
@@ -184,7 +307,6 @@ def create(
     output_file: Optional[Path] = typer.Option(None, "--output", "-o", help="File to write commit message to"),
 ):
     """Interactively create a commit message according to configured format."""
-    from .formats import FORMAT_REGISTRY
 
     # Convert string to Path if provided
     config_path = Path(config_file) if config_file else None
@@ -257,88 +379,58 @@ def lint(
     Lint a commit message according to configured format.
     """
     import sys
-    from .formats import FORMAT_REGISTRY
 
     # Auto-disable interactive mode if not in a TTY
     if not sys.stdout.isatty():
         interactive = False
 
-    # Convert string to Path if provided
-    config_path = Path(config_file) if config_file else None
+    # Load config and create format validator
+    config, commit_format = _load_config_and_format(config_file, format_type)
 
-    try:
-        config = load_config(config_path)
+    # Get the message to lint from available sources
+    message_text = _get_message_from_sources(message, file)
 
-        # Override format type if specified
-        if format_type:
-            if format_type not in FORMAT_REGISTRY:
-                valid_formats = ", ".join(FORMAT_REGISTRY.keys())
-                console.print(f"[bold red]Invalid format type: {format_type}[/bold red]")
-                console.print(f"Valid formats: {valid_formats}")
-                raise typer.Exit(code=1)
-
-            # Override the format type in the config
-            config["format_type"] = format_type
-            console.print(f"[blue]Using format type: {format_type}[/blue]")
-
-        commit_format = get_commit_format(config)
-    except Exception as e:
-        console.print(f"[bold red]Error loading config:[/bold red] {str(e)}")
-        raise typer.Exit(code=1)
-
-    # Get the message to lint
-    if message:
-        # Message provided via command line option
-        message_text = message
-    elif file:
-        if str(file) == "-":
-            # Read from stdin when file is "-"
-            message_text = typer.get_text_stream("stdin").read().strip()
-        elif file.exists():
-            # Read from file
-            message_text = file.read_text().strip()
-        else:
-            console.print(f"[red]Error:[/red] File not found: {file}")
-            return 1
-    elif not typer.get_text_stream("stdin").isatty():
-        # No message or file specified, but stdin has content
-        message_text = typer.get_text_stream("stdin").read().strip()
-    else:
-        # No message provided
-        console.print("[red]Error:[/red] No message provided")
-        return 1
-
-    # Validate the message using the selected format
+    # Validate the message
     result = commit_format.validate(message_text)
 
     if result.valid:
         console.print("[bold green]Commit message is valid![/bold green]")
         return 0
 
-    # If invalid, show errors
+    # Show errors for invalid messages
+    _display_validation_errors(result)
+
+    # Handle interactive mode
+    if interactive:
+        return _handle_interactive_fix(commit_format, config, file, message_text)
+    else:
+        # Non-interactive mode - just fail
+        raise typer.Exit(code=1)
+
+
+def _display_validation_errors(result):
+    """Display validation errors from a result object."""
     console.print("[bold red]Commit message validation failed:[/bold red]")
     for error in result.errors:
         console.print(f"  • {error}")
 
-    # If interactive mode is enabled and we're in a terminal, help fix the message
-    if interactive:
-        console.print("\n[bold]Let's fix your commit message...[/bold]")
-        # Use the format-specific prompt_for_message method instead of the old function
-        new_message = commit_format.prompt_for_message(config)
 
-        # If this was called from a Git hook, write the new message back to the file
-        if file:
-            with open(file, "w") as f:
-                f.write(new_message)
-            console.print("[bold green]New commit message saved to file.[/bold green]")
-        else:
-            # For CLI usage, just print the message
-            console.print(Panel(new_message, title="Use this commit message"))
+def _handle_interactive_fix(commit_format, config, file, original_message):
+    """Handle interactive fixing of invalid commit messages."""
+    console.print("\n[bold]Let's fix your commit message...[/bold]")
+    # Use the format-specific prompt_for_message method
+    new_message = commit_format.prompt_for_message(config)
 
-        return 0
+    # If this was called from a Git hook, write the new message back to the file
+    if file:
+        with open(file, "w") as f:
+            f.write(new_message)
+        console.print("[bold green]New commit message saved to file.[/bold green]")
     else:
-        # Non-interactive mode - just fail
-        raise typer.Exit(code=1)
+        # For CLI usage, just print the message
+        console.print(Panel(new_message, title="Use this commit message"))
+
+    return 0
 
 
 @app.command()
@@ -351,38 +443,14 @@ def commit(
     skip_hooks: bool = typer.Option(False, "--no-verify", help="Skip pre-commit hooks"),
 ):
     """Create a commit message and commit changes."""
-    from .formats import FORMAT_REGISTRY
-    import subprocess
-
-    # Convert string to Path if provided
-    config_path = Path(config_file) if config_file else None
-
-    try:
-        config = load_config(config_path)
-
-        # Override format type if specified
-        if format_type:
-            if format_type not in FORMAT_REGISTRY:
-                valid_formats = ", ".join(FORMAT_REGISTRY.keys())
-                console.print(f"[bold red]Invalid format type: {format_type}[/bold red]")
-                console.print(f"Valid formats: {valid_formats}")
-                raise typer.Exit(code=1)
-
-            # Override the format type in the config
-            config["format_type"] = format_type
-            console.print(f"[blue]Using format type: {format_type}[/blue]")
-
-        commit_format = get_commit_format(config)
-    except Exception as e:
-        console.print(f"[bold red]Error loading config:[/bold red] {str(e)}")
-        raise typer.Exit(code=1)
+    # Load config and create format validator
+    config, commit_format = _load_config_and_format(config_file, format_type)
 
     # Generate commit message interactively
     commit_message = commit_format.prompt_for_message(config)
 
     # Validate the message
     result = commit_format.validate(commit_message)
-
     if not result.valid:
         console.print("\n[bold yellow]⚠️ Warning: The commit message has validation issues:[/bold yellow]")
         for error in result.errors:
@@ -392,65 +460,20 @@ def commit(
             raise typer.Exit(code=1)
 
     # Check if there are staged changes
-    try:
-        diff_result = subprocess.run(
-            ["git", "diff", "--cached", "--name-only"], capture_output=True, text=True, check=True
-        )
-        if not diff_result.stdout.strip():
-            console.print("[bold yellow]Warning: No staged changes to commit.[/bold yellow]")
-            if not typer.confirm("Stage all changes?", default=False):
-                console.print("Use 'git add' to stage changes and try again.")
-                raise typer.Exit(code=1)
+    _check_staged_changes()
 
-            # Stage all changes
-            subprocess.run(["git", "add", "-A"], check=True)
-            console.print("[blue]All changes staged for commit.[/blue]")
-    except subprocess.CalledProcessError as e:
-        console.print(f"[bold red]Failed to check staged changes:[/bold red] {str(e)}")
-        raise typer.Exit(code=1)
-
-    # Save message to temp file for git commit
-    with tempfile.NamedTemporaryFile(mode="w", delete=False) as temp:
-        temp_path = Path(temp.name)
-        temp.write(commit_message)
+    # Execute git commit
+    commit_process, temp_path = _run_git_commit(commit_message, skip_hooks)
 
     try:
-        # Prepare git commit command
-        git_cmd = ["git", "commit", "-F", str(temp_path)]
-
-        # Add --no-verify flag if requested to skip hooks
-        if skip_hooks:
-            git_cmd.append("--no-verify")
-            console.print("[yellow]Skipping pre-commit hooks[/yellow]")
-        else:
-            console.print("[blue]Running pre-commit hooks...[/blue]")
-
-        # Execute git commit with the message file
-        commit_process = subprocess.run(git_cmd, capture_output=True, text=True)
-
         if commit_process.returncode == 0:
             console.print("[bold green]Changes committed successfully![/bold green]")
             # Show the commit output
             console.print(commit_process.stdout)
             return 0
         else:
-            # If hooks or commit failed
-            if "hook" in commit_process.stderr.lower():
-                console.print("[bold red]Pre-commit hooks failed:[/bold red]")
-            else:
-                console.print("[bold red]Git commit failed:[/bold red]")
-
-            console.print(commit_process.stderr)
-            console.print("\nYou can run with --no-verify to skip hooks.")
-
-            # Save the commit message if requested for later use
-            if output_file or typer.confirm("Save commit message for later use?", default=True):
-                output_path = output_file or Path(".git/COMMIT_EDITMSG")
-                with open(output_path, "w") as f:
-                    f.write(commit_message)
-                console.print(f"[green]Commit message saved to {output_path}[/green]")
-
-            raise typer.Exit(code=1)
+            # Handle commit failure
+            return _handle_commit_failure(commit_process, commit_message, output_file)
     finally:
         # Clean up temp file
         temp_path.unlink(missing_ok=True)
@@ -603,7 +626,6 @@ def init(
     ),
 ):
     """Create a new configuration file with default settings."""
-    from .formats import FORMAT_REGISTRY
     import tomli_w
 
     # Check if the selected format is valid

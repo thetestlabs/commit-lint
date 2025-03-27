@@ -1,6 +1,8 @@
+from unittest.mock import patch
+
 import pytest
 from typer.testing import CliRunner
-from unittest.mock import patch
+
 from commit_lint.cli import app
 
 

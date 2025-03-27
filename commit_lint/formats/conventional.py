@@ -7,7 +7,7 @@ interactive generation of commit messages in this format.
 """
 
 import re
-from typing import Dict, Optional, Any
+from typing import Dict, Optional, Any, List, Tuple
 from rich.panel import Panel
 from rich.console import Console
 import questionary
@@ -197,63 +197,76 @@ class ConventionalCommitFormat(CommitFormat):
         Interactive prompt to create a Conventional Commits message.
 
         This method guides the user through creating a commit message that follows
-        the Conventional Commits specification, prompting for:
-
-        1. Type (e.g., feat, fix) from configured allowed types
-        2. Scope (optional or required based on configuration)
-        3. Whether the change is breaking (for allowed types)
-        4. Description (subject line)
-        5. Optional body for detailed explanation
-        6. Optional footer including breaking change notes
-
-        Breaking changes are marked with both an exclamation mark (!) after the type/scope
-        and a "BREAKING CHANGE: description" entry in the footer.
+        the Conventional Commits specification.
 
         Args:
-            config: Configuration dictionary with format settings including allowed types,
-                   scopes, breaking change settings, and validation rules.
+            config: Configuration dictionary with format settings
 
         Returns:
             str: A properly formatted Conventional Commits message.
         """
         console.print(Panel("Create a Conventional Commit message", title="Commit Message"))
 
-        # Get type
+        # Get components through helper functions
+        type_name = self._prompt_for_type(config)
+        scope = self._prompt_for_scope(config)
+        breaking, breaking_description = self._prompt_for_breaking_change(config, type_name)
+        description = self._prompt_for_description(config)
+        body = self._prompt_for_body(config)
+        footer = self._prompt_for_footer(config, breaking, breaking_description)
+
+        # Assemble and return the message
+        return self._assemble_commit_message(type_name, scope, breaking, description, body, footer)
+
+    def _prompt_for_type(self, config: Dict[str, Any]) -> str:
+        """Get commit type from user."""
         valid_types = config.get("types", [])
         type_choices = []
         for t in valid_types:
             description = COMMIT_TYPE_DESCRIPTIONS.get(t, "")
             type_choices.append({"name": f"{t}: {description}" if description else t, "value": t})
 
-        type_idx = questionary.select("Commit type:", choices=type_choices).ask()
+        return questionary.select("Commit type:", choices=type_choices).ask()
 
-        # Get scope
-        scope = ""
+    def _prompt_for_scope(self, config: Dict[str, Any]) -> str:
+        """Get optional or required scope from user."""
         scope_required = config.get("scope_required", False)
         allowed_scopes = config.get("allowed_scopes")
 
         if allowed_scopes:
-            scope_choices = [{"name": s, "value": s} for s in allowed_scopes]
-            if not scope_required:
-                # Add option for no scope
-                scope_choices.insert(0, {"name": "No scope", "value": ""})
-
-            scope = questionary.select("Scope:", choices=scope_choices).ask()
+            return self._prompt_for_scope_from_allowed(allowed_scopes, scope_required)
         else:
-            scope_prompt = "Scope (optional):" if not scope_required else "Scope:"
-            scope = questionary.text(scope_prompt).ask() or ""
-            while scope_required and not scope:
-                console.print("[red]Scope is required[/red]")
-                scope = questionary.text(scope_prompt).ask() or ""
+            return self._prompt_for_free_text_scope(scope_required)
 
-        # Breaking change
+    def _prompt_for_scope_from_allowed(self, allowed_scopes: List[str], scope_required: bool) -> str:
+        """Prompt for scope selection from a predefined list."""
+        scope_choices = [{"name": s, "value": s} for s in allowed_scopes]
+        if not scope_required:
+            # Add option for no scope
+            scope_choices.insert(0, {"name": "No scope", "value": ""})
+
+        return questionary.select("Scope:", choices=scope_choices).ask()
+
+    def _prompt_for_free_text_scope(self, scope_required: bool) -> str:
+        """Prompt for free-text scope entry."""
+        scope_prompt = "Scope (optional):" if not scope_required else "Scope:"
+        scope = questionary.text(scope_prompt).ask() or ""
+
+        while scope_required and not scope:
+            console.print("[red]Scope is required[/red]")
+            scope = questionary.text(scope_prompt).ask() or ""
+
+        return scope
+
+    def _prompt_for_breaking_change(self, config: Dict[str, Any], type_name: str) -> Tuple[bool, str]:
+        """Get breaking change flag and description if applicable."""
         allowed_breaking = config.get("allowed_breaking_changes", [])
         breaking = False
         breaking_description = ""
-        if type_idx in allowed_breaking:
+
+        if type_name in allowed_breaking:
             breaking = questionary.confirm("Is this a breaking change?", default=False).ask()
             if breaking:
-                # Get description of the breaking change for the footer
                 breaking_description = (
                     questionary.text(
                         "Describe the breaking change (this will be added to the footer):",
@@ -262,17 +275,24 @@ class ConventionalCommitFormat(CommitFormat):
                     or "Breaking changes"
                 )
 
-        # Description
-        description = questionary.text("Description:").ask()
+        return breaking, breaking_description
 
-        # Body
+    def _prompt_for_description(self, config: Dict[str, Any]) -> str:
+        """Get commit description from user."""
+        return questionary.text("Description:").ask()
+
+    def _prompt_for_body(self, config: Dict[str, Any]) -> str:
+        """Get optional or required commit body from user."""
         body_required = config.get("body_required", False)
-        body = ""
-        if body_required or questionary.confirm("Add body?", default=False).ask():
-            console.print("Enter body (press Esc + Enter when done):")
-            body = questionary.text("", multiline=True).ask() or ""
 
-        # Footer
+        if not body_required and not questionary.confirm("Add body?", default=False).ask():
+            return ""
+
+        console.print("Enter body (press Esc + Enter when done):")
+        return questionary.text("", multiline=True).ask() or ""
+
+    def _prompt_for_footer(self, config: Dict[str, Any], breaking: bool, breaking_description: str) -> str:
+        """Get optional or required footer, including breaking change notes if applicable."""
         footer_required = config.get("footer_required", False)
         footer = ""
 
@@ -282,25 +302,38 @@ class ConventionalCommitFormat(CommitFormat):
 
         # If additional footer content is needed beyond breaking changes
         if footer_required or (not breaking and questionary.confirm("Add footer?", default=False).ask()):
-            instruction = "Enter additional footer information" if breaking else "Enter footer"
-            console.print(f"{instruction} (press Esc + Enter when done):")
-            additional_footer = questionary.text("", multiline=True).ask() or ""
+            return self._get_additional_footer_content(footer, breaking)
 
-            # Add additional footer content
-            if additional_footer:
-                if footer:  # We already have breaking change content
-                    footer += f"\n\n{additional_footer}"
-                else:
-                    footer = additional_footer
+        return footer
 
-        # Assemble message
-        message = f"{type_idx}"
+    def _get_additional_footer_content(self, existing_footer: str, breaking: bool) -> str:
+        """Get additional footer content beyond breaking changes."""
+        instruction = "Enter additional footer information" if breaking else "Enter footer"
+        console.print(f"{instruction} (press Esc + Enter when done):")
+        additional_footer = questionary.text("", multiline=True).ask() or ""
+
+        # Add additional footer content
+        if additional_footer:
+            if existing_footer:  # We already have breaking change content
+                return f"{existing_footer}\n\n{additional_footer}"
+            else:
+                return additional_footer
+
+        return existing_footer
+
+    def _assemble_commit_message(
+        self, type_name: str, scope: str, breaking: bool, description: str, body: str, footer: str
+    ) -> str:
+        """Assemble the final commit message from components."""
+        # Create header
+        message = f"{type_name}"
         if scope:
             message += f"({scope})"
         if breaking:
             message += "!"
         message += f": {description}"
 
+        # Add body and footer if present
         if body:
             message += f"\n\n{body}"
         if footer:
