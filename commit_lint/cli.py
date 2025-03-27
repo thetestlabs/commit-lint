@@ -359,7 +359,6 @@ def _get_format_specific_defaults(format_type: str) -> Dict[str, str]:
 
 def _write_config_to_file(output_file: Path, config: Dict[str, Any]):
     """Write configuration to the appropriate file format."""
-    import tomli_w
 
     try:
         if output_file.name == "pyproject.toml":
