@@ -3,7 +3,7 @@
 ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/thetestlabs/commit-lint/CI?label=build)
 ![GitHub commits since latest release (branch)](https://img.shields.io/github/commits-since/thetestlabs/commit-lint/latest/main)
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/thetestlabs/commit-lint/.github%2Fworkflows%2Frelease.yaml)
-[![Licence](https://img.shields.io/github/license/Ileriayo/markdown-badges?style=for-the-badge)](./LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 
 # commit-lint
