@@ -77,61 +77,61 @@ class JiraCommitFormat(CommitFormat):
 
     def validate(self, commit_message: str) -> JiraCommitResult:
         """
-        Validate a commit message according to Jira style.
-
-        This method checks if the message follows the Jira format with an
-        issue ID reference and applies additional validation rules defined
-        in configuration.
-
-        Args:
-            commit_message: The commit message string to validate.
-
-        Returns:
-            JiraCommitResult: A result object containing validation status,
-                             any errors, and parsed components of the message.
+        Validate a commit message according to Jira format standards.
         """
         errors = []
+        issue_id = None
+        message_text = commit_message
+        body = None
 
-        # Match against pattern
-        match = self.commit_pattern.match(commit_message)
-        if not match:
-            if self.config.get("require_issue_id", True):
-                return JiraCommitResult(
-                    valid=False, errors=["Commit message must start with a Jira issue ID (e.g., 'PROJ-123: Message')"]
-                )
-            else:
-                # If issue ID not required, try to match just the message
-                simple_match = re.match(r"^(?P<message>.+?)(?:\n\n(?P<body>[\s\S]*))?$", commit_message, re.DOTALL)
-                if simple_match:
-                    return JiraCommitResult(
-                        valid=True,
-                        errors=[],
-                        issue_id=None,
-                        message=simple_match.group("message"),
-                        body=simple_match.group("body"),
-                    )
-                else:
-                    return JiraCommitResult(valid=False, errors=["Invalid commit message format"])
+        # Check if there's a body (separated by blank line)
+        parts = commit_message.split("\n\n", 1)
 
-        # Extract components
-        issue_id = match.group("issue_id")
-        message = match.group("message")
-        body = match.group("body")
+        # Extract just the first line for subject validation
+        first_line = parts[0].strip()
 
-        # Check if project key is valid (if project keys are specified)
-        if self.jira_project_keys:
-            project_key = issue_id.split("-")[0]
-            if project_key not in self.jira_project_keys:
+        # If there's a body, set it
+        if len(parts) > 1:
+            body = parts[1].strip()
+
+        # Check if issue ID is required and properly formatted
+        require_issue_id = self.config.get("require_issue_id", True)
+        project_keys = self.config.get("jira_project_keys", [])
+
+        # Debug the input to see what we're dealing with
+        # print(f"DEBUG - first_line: '{first_line}'")
+
+        # Modified regex to be more tolerant of whitespace
+        issue_id_match = re.match(r"^\s*([A-Z][A-Z0-9_]+-\d+)\s*:\s*(.*?)\s*$", first_line)
+
+        if issue_id_match:
+            issue_id = issue_id_match.group(1)
+            message_text = issue_id_match.group(2).strip()  # Extract just the message part
+
+            # Validate project key if specific keys are configured
+            if project_keys and issue_id.split("-")[0] not in project_keys:
                 errors.append(
-                    f"Invalid Jira project key: {project_key}. Must be one of: {', '.join(self.jira_project_keys)}"
+                    f"Commit message must start with a Jira issue ID from one of the allowed projects: {', '.join(project_keys)}"
                 )
+        elif require_issue_id:
+            errors.append("Commit message must start with a Jira issue ID (e.g., PROJECT-123: message)")
+        else:
+            # No issue ID but it's optional, so message_text is the whole first line
+            message_text = first_line
 
-        # Validate message length
-        max_message_length = self.config.get("max_message_length", 72)
-        if len(message) > max_message_length:
-            errors.append(f"Message too long ({len(message)} > {max_message_length})")
+        # Validate message length (only checking the message part, not the issue ID)
+        max_length = self.config.get("max_message_length", 72)
+        if len(message_text) > max_length:
+            errors.append(f"Commit message is too long ({len(message_text)} > {max_length} characters)")
 
-        return JiraCommitResult(valid=len(errors) == 0, errors=errors, issue_id=issue_id, message=message, body=body)
+        # Return result object with all components
+        return JiraCommitResult(
+            valid=len(errors) == 0,
+            errors=errors,
+            issue_id=issue_id,
+            message=message_text,  # This should now be just the subject line
+            body=body,
+        )
 
     def prompt_for_message(self, config: Dict[str, Any]) -> str:
         """

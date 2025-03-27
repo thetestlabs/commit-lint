@@ -139,13 +139,13 @@ class TestJiraFormat:
         formatter = JiraCommitFormat(config)
 
         message = """TEST-789: Add complex feature
-        
+
 This is a detailed description
 with multiple lines
-        
+
 - Including lists
 - And formatting
-        
+
 And more paragraphs"""
 
         result = formatter.validate(message)
