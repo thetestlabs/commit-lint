@@ -70,8 +70,6 @@ class CommitFormat(ABC):
 
     @classmethod
     @abstractmethod
-    @classmethod
-    @abstractmethod
     def get_format_name(cls) -> str:
         """
         Return the name of this format.
