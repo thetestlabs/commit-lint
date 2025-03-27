@@ -27,6 +27,7 @@ no_period_end = true
 ```
 
 **Rules:**
+
 - Must follow pattern: `type(scope)?: description` with optional body and footer
 - Type must be one of the predefined types
 - Scope is optional (unless `scope_required = true`)
@@ -48,6 +49,7 @@ keywords = ["Fixes", "Closes", "Resolves"]
 ```
 
 **Rules:**
+
 - Brief, concise first line (max_subject_length defaults to 72)
 - Should use imperative mood in subject line (can be disabled)
 - Issue references in format "Fixes #123" use allowed keywords
@@ -66,6 +68,7 @@ max_message_length = 72
 ```
 
 **Rules:**
+
 - Must start with issue ID like "PROJ-123: Message" (if `require_issue_id = true`)
 - Issue ID must match one of the configured project keys
 - Message part must not exceed max_message_length
@@ -81,6 +84,7 @@ custom_pattern = "^\\[\\w+\\] .+$"  # Example: [CATEGORY] Message
 ```
 
 **Rules:**
+
 - Must match the provided regex pattern
 - In this example, commits must start with a category in square brackets
 - The pattern is fully customizable to fit specific team conventions
