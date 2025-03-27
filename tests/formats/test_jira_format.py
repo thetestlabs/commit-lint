@@ -1,5 +1,7 @@
-import pytest
 from unittest.mock import patch
+
+import pytest
+
 from commit_lint.formats.jira import JiraCommitFormat
 
 

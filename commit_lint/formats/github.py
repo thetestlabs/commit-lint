@@ -128,7 +128,9 @@ class GitHubCommitFormat(CommitFormat):
             issue_reference = issue_match.group("issue")
         elif issue_required:
             keyword_list = ", ".join(self.issue_keywords)
-            errors.append(f"Missing issue reference (e.g., '{self.issue_keywords[0]} #123'). Use one of: {keyword_list}")
+            errors.append(
+                f"Missing issue reference (e.g., '{self.issue_keywords[0]} #123'). Use one of: {keyword_list}"
+            )
 
         return GitHubCommitResult(
             valid=len(errors) == 0,

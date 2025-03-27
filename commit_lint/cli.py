@@ -179,7 +179,6 @@ def get_staged_files() -> List[str]:
 # Helper functions for CLI commands
 def _load_config_and_format(config_file: Optional[str], format_type: Optional[str]):
     """Load configuration and create appropriate format validator."""
-    from .formats import FORMAT_REGISTRY
 
     # Convert string to Path if provided
     config_path = Path(config_file) if config_file else None
@@ -208,7 +207,6 @@ def _load_config_and_format(config_file: Optional[str], format_type: Optional[st
 
 def _get_message_from_sources(message: Optional[str], file: Optional[Path]):
     """Get commit message from available sources (CLI arg, file, or stdin)."""
-    import sys
 
     if message:
         # Message provided via command line option
@@ -309,7 +307,6 @@ def create(
     output_file: Optional[Path] = typer.Option(None, "--output", "-o", help="File to write commit message to"),
 ):
     """Interactively create a commit message according to configured format."""
-    from .formats import FORMAT_REGISTRY
 
     # Convert string to Path if provided
     config_path = Path(config_file) if config_file else None
@@ -629,7 +626,6 @@ def init(
     ),
 ):
     """Create a new configuration file with default settings."""
-    from .formats import FORMAT_REGISTRY
     import tomli_w
 
     # Check if the selected format is valid

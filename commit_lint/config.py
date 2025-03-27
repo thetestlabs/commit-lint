@@ -5,10 +5,10 @@ This module handles loading and parsing configuration from various sources,
 with support for both pyproject.toml and standalone commit-lint.toml files.
 """
 
-import tomli
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 
+import tomli
 from pydantic import Field, BaseModel
 
 

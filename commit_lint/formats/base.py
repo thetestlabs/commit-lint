@@ -67,6 +67,7 @@ class CommitFormat(ABC):
         Returns:
             str: The generated commit message.
         """
+
     @classmethod
     @abstractmethod
     @classmethod

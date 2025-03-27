@@ -1,6 +1,8 @@
-import pytest
 from typer.testing import CliRunner
 from unittest.mock import patch, MagicMock
+
+import pytest
+
 from commit_lint.cli import app
 
 
