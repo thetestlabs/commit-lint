@@ -4,7 +4,8 @@
 ![GitHub commits since latest release (branch)](https://img.shields.io/github/commits-since/thetestlabs/commit-lint/latest/main)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![PyPI Python Versions](https://img.shields.io/pypi/pyversions/poetry.svg)](https://pypi.python.org/pypi/poetry)
-<a href="https://opensource.org/licenses/MIT"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-success.svg"></a>
+[![License: MIT](https://img.shields.io/badge/License-MIT-success.svg)](https://opensource.org/licenses/MIT)
+
 
 
 # commit-lint
