@@ -98,11 +98,8 @@ class JiraCommitFormat(CommitFormat):
         require_issue_id = self.config.get("require_issue_id", True)
         project_keys = self.config.get("jira_project_keys", [])
 
-        # Debug the input to see what we're dealing with
-        # print(f"DEBUG - first_line: '{first_line}'")
-
-        # Modified regex to be more tolerant of whitespace
-        issue_id_match = re.match(r"^\s*([A-Z][A-Z0-9_]+-\d+)\s*:\s*(.*?)\s*$", first_line)
+        # Modified regex to require at least one whitespace after colon
+        issue_id_match = re.match(r"^\s*([A-Z][A-Z0-9_]+-\d+)\s*:\s+(.*?)\s*$", first_line)
 
         if issue_id_match:
             issue_id = issue_id_match.group(1)
@@ -126,11 +123,7 @@ class JiraCommitFormat(CommitFormat):
 
         # Return result object with all components
         return JiraCommitResult(
-            valid=len(errors) == 0,
-            errors=errors,
-            issue_id=issue_id,
-            message=message_text,  # This should now be just the subject line
-            body=body,
+            valid=len(errors) == 0, errors=errors, issue_id=issue_id, message=message_text, body=body
         )
 
     def prompt_for_message(self, config: Dict[str, Any]) -> str:

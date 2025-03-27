@@ -1,12 +1,13 @@
 import tempfile
 import subprocess
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from pathlib import Path
 from importlib.metadata import version as get_version
 from importlib.metadata import PackageNotFoundError
 
 import typer
 import tomli
+import tomli_w
 from rich.panel import Panel
 from rich.console import Console
 from rich.table import Table
@@ -130,11 +131,11 @@ def show_rules_callback(value: bool):
 
         # Example config in pyproject.toml
         console.print(Markdown("## Example Configuration"))
-        console.print(
-            Markdown(
-                '```toml\n[tool.commit_lint]\n# Common configuration\nformat_type = "conventional"  # or "github", "jira", "custom"\n\n# Format-specific settings\ntypes = ["feat", "fix", "docs"]\nmax_subject_length = 100\nscope_required = false\n```'
-            )
-        )
+        example_config = ('```toml\n[tool.commit_lint]\n# Common configuration\n'
+                 'format_type = "conventional"  # or "github", "jira", "custom"\n\n'
+                 '# Format-specific settings\ntypes = ["feat", "fix", "docs"]\n'
+                 'max_subject_length = 100\nscope_required = false\n```')
+        console.print(Markdown(example_config))
 
         raise typer.Exit()
 
@@ -298,43 +299,8 @@ def _handle_commit_failure(commit_process, commit_message: str, output_file: Opt
     return 1  # Non-zero return code
 
 
-@app.command()
-def create(
-    config_file: Optional[str] = typer.Option(None, "--config", "-c", help="Path to config file"),
-    format_type: Optional[str] = typer.Option(
-        None, "--format-type", "-f", help="Override format type (conventional, github, jira, custom)"
-    ),
-    output_file: Optional[Path] = typer.Option(None, "--output", "-o", help="File to write commit message to"),
-):
-    """Interactively create a commit message according to configured format."""
-
-    # Convert string to Path if provided
-    config_path = Path(config_file) if config_file else None
-
-    try:
-        config = load_config(config_path)
-
-        # Override format type if specified
-        if format_type:
-            if format_type not in FORMAT_REGISTRY:
-                valid_formats = ", ".join(FORMAT_REGISTRY.keys())
-                console.print(f"[bold red]Invalid format type: {format_type}[/bold red]")
-                console.print(f"Valid formats: {valid_formats}")
-                raise typer.Exit(code=1)
-
-            # Override the format type in the config
-            config["format_type"] = format_type
-            console.print(f"[blue]Using format type: {format_type}[/blue]")
-
-        commit_format = get_commit_format(config)
-    except Exception as e:
-        console.print(f"[bold red]Error loading config:[/bold red] {str(e)}")
-        raise typer.Exit(code=1)
-
-    # Use format-specific prompt_for_message
-    commit_message = commit_format.prompt_for_message(config)
-
-    # Validate the message we just created
+def _validate_and_display_message(commit_message: str, commit_format):
+    """Validate a commit message and display results."""
     result = commit_format.validate(commit_message)
 
     if not result.valid:
@@ -345,7 +311,11 @@ def create(
     else:
         console.print("\n[bold green]✓ Commit message is valid![/bold green]")
 
-    # Save message to file if requested
+    return result
+
+
+def _save_or_display_message(commit_message: str, output_file: Optional[Path]):
+    """Save the commit message to file or display it."""
     if output_file:
         with open(output_file, "w") as f:
             f.write(commit_message)
@@ -353,6 +323,103 @@ def create(
     else:
         # Just print the message
         console.print(Panel(commit_message, title="Generated Commit Message"))
+
+
+def _get_format_specific_defaults(format_type: str) -> Dict[str, str]:
+    """Get default configuration values for a specific format type."""
+    if format_type == "conventional":
+        return {
+            "types": ",".join(
+                ["feat", "fix", "docs", "style", "refactor", "perf", "test", "build", "ci", "chore", "revert"]
+            ),
+            "max_subject_length": "100",
+            "subject_case": "lower",
+            "scope_required": "False",
+            "allowed_breaking_changes": ",".join(["feat", "fix"]),
+            "no_period_end": "True",
+        }
+    elif format_type == "github":
+        return {
+            "max_subject_length": "72",
+            "imperative_mood": "True",
+            "issue_reference_required": "False",
+            "keywords": ",".join(["Fixes", "Closes", "Resolves"]),
+        }
+    elif format_type == "jira":
+        return {"jira_project_keys": ",".join(["PROJ"]), "require_issue_id": "True", "max_message_length": "72"}
+    elif format_type == "custom":
+        return {
+            "custom_pattern": "^\\[(?P<category>\\w+)\\] (?P<message>.+)$",
+            "message_template": "[{category}] {message}",
+            "category_prompt": "Category (e.g. FEATURE, BUGFIX)",
+            "message_prompt": "Commit message",
+        }
+    return {}
+
+
+def _write_config_to_file(output_file: Path, config: Dict[str, Any]):
+    """Write configuration to the appropriate file format."""
+
+    try:
+        if output_file.name == "pyproject.toml":
+            _write_to_pyproject(output_file, config)
+        else:
+            # Write standalone TOML file
+            with open(output_file, "wb") as f:
+                tomli_w.dump(config, f)
+
+        console.print(f"[bold green]Configuration created at {output_file}[/bold green]")
+    except Exception as e:
+        console.print(f"[bold red]Failed to write configuration:[/bold red] {str(e)}")
+        raise typer.Exit(code=1)
+
+
+def _write_to_pyproject(pyproject_path: Path, config: Dict[str, Any]):
+    """Write configuration to a pyproject.toml file."""
+
+    # Check if file exists and read it first
+    if pyproject_path.exists():
+        with open(pyproject_path, "rb") as f:
+            try:
+                existing_config = tomli.load(f)
+            except Exception as e:
+                console.print(f"[bold red]Error reading existing pyproject.toml: {e}[/bold red]")
+                raise typer.Exit(code=1)
+
+        # Update with tool.commit_lint section
+        if "tool" not in existing_config:
+            existing_config["tool"] = {}
+        existing_config["tool"]["commit_lint"] = config
+
+        # Write back
+        with open(pyproject_path, "wb") as f:
+            tomli_w.dump(existing_config, f)
+    else:
+        # Create new file
+        with open(pyproject_path, "wb") as f:
+            tomli_w.dump({"tool": {"commit_lint": config}}, f)
+
+
+@app.command()
+def create(
+    config_file: Optional[str] = typer.Option(None, "--config", "-c", help="Path to config file"),
+    format_type: Optional[str] = typer.Option(
+        None, "--format-type", "-f", help="Override format type (conventional, github, jira, custom)"
+    ),
+    output_file: Optional[Path] = typer.Option(None, "--output", "-o", help="File to write commit message to"),
+):
+    """Interactively create a commit message according to configured format."""
+    # Load config and create format validator
+    config, commit_format = _load_config_and_format(config_file, format_type)
+
+    # Use format-specific prompt_for_message
+    commit_message = commit_format.prompt_for_message(config)
+
+    # Validate the message we just created
+    result = _validate_and_display_message(commit_message, commit_format)
+
+    # Save message to file or display it
+    _save_or_display_message(commit_message, output_file)
 
     # For non-interactive usage, we want to return a non-zero exit code if validation failed
     if not result.valid:
@@ -626,8 +693,6 @@ def init(
     ),
 ):
     """Create a new configuration file with default settings."""
-    import tomli_w
-
     # Check if the selected format is valid
     if format_type not in FORMAT_REGISTRY:
         valid_formats = ", ".join(FORMAT_REGISTRY.keys())
@@ -635,77 +700,12 @@ def init(
         console.print(f"Valid formats: {valid_formats}")
         raise typer.Exit(code=1)
 
-    # Default config based on format type
+    # Build config dictionary with format type and format-specific defaults
     config = {"format_type": format_type}
+    config.update(_get_format_specific_defaults(format_type))
 
-    # Add format-specific defaults
-    if format_type == "conventional":
-        config.update(
-            {
-                "types": ",".join(
-                    ["feat", "fix", "docs", "style", "refactor", "perf", "test", "build", "ci", "chore", "revert"]
-                ),
-                "max_subject_length": "100",
-                "subject_case": "lower",
-                "scope_required": "False",
-                "allowed_breaking_changes": ",".join(["feat", "fix"]),
-                "no_period_end": "True",
-            }
-        )
-    elif format_type == "github":
-        config.update(
-            {
-                "max_subject_length": "72",
-                "imperative_mood": "True",
-                "issue_reference_required": "False",
-                "keywords": ",".join(["Fixes", "Closes", "Resolves"]),
-            }
-        )
-    elif format_type == "jira":
-        config.update({"jira_project_keys": ",".join(["PROJ"]), "require_issue_id": "True", "max_message_length": "72"})
-    elif format_type == "custom":
-        config.update(
-            {
-                "custom_pattern": "^\\[(?P<category>\\w+)\\] (?P<message>.+)$",
-                "message_template": "[{category}] {message}",
-                "category_prompt": "Category (e.g. FEATURE, BUGFIX)",
-                "message_prompt": "Commit message",
-            }
-        )
-
-    # Write to file
-    try:
-        if output_file.name == "pyproject.toml":
-            # Check if file exists and read it first
-            if output_file.exists():
-                with open(output_file, "rb") as f:
-                    try:
-                        existing_config = tomli.load(f)
-                    except Exception as e:
-                        console.print(f"[bold red]Error reading existing pyproject.toml: {e}[/bold red]")
-                        raise typer.Exit(code=1)
-
-                # Update with tool.commit_lint section
-                if "tool" not in existing_config:
-                    existing_config["tool"] = {}
-                existing_config["tool"]["commit_lint"] = config
-
-                # Write back
-                with open(output_file, "wb") as f:
-                    tomli_w.dump(existing_config, f)
-            else:
-                # Create new file
-                with open(output_file, "wb") as f:
-                    tomli_w.dump({"tool": {"commit_lint": config}}, f)
-        else:
-            # Write standalone TOML file
-            with open(output_file, "wb") as f:
-                tomli_w.dump(config, f)
-
-        console.print(f"[bold green]Configuration created at {output_file}[/bold green]")
-    except Exception as e:
-        console.print(f"[bold red]Failed to write configuration:[/bold red] {str(e)}")
-        raise typer.Exit(code=1)
+    # Write config to the specified file
+    _write_config_to_file(output_file, config)
 
 
 if __name__ == "__main__":
