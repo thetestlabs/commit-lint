@@ -51,8 +51,8 @@ class CommitFormat(ABC):
         Returns:
             CommitFormatResult: An object containing validation results.
         """
-        pass
 
+    @abstractmethod
     @abstractmethod
     def prompt_for_message(self, config: Dict[str, Any]) -> str:
         """
@@ -67,8 +67,8 @@ class CommitFormat(ABC):
         Returns:
             str: The generated commit message.
         """
-        pass
-
+    @classmethod
+    @abstractmethod
     @classmethod
     @abstractmethod
     def get_format_name(cls) -> str:
@@ -81,4 +81,3 @@ class CommitFormat(ABC):
         Returns:
             str: The format name identifier (e.g., 'conventional', 'github').
         """
-        pass

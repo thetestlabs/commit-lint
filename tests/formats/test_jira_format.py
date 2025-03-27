@@ -150,18 +150,14 @@ And more paragraphs"""
         assert result.valid
         assert result.issue_id == "TEST-789"
 
-        # Check that the message starts with the subject line
-        assert result.message.startswith("Add complex feature")
+        # Check that the message is just the subject line
+        assert result.message == "Add complex feature"
 
-        # Verify the body content is included somewhere in the message
-        assert "detailed description" in result.message
-        assert "Including lists" in result.message
-        assert "And formatting" in result.message
-
-        # If body is meant to be null, don't check for body content
-        if result.body is not None:
-            assert "multiple lines" in result.body
-            assert "Including lists" in result.body
+        # Body should contain the detailed content
+        assert result.body is not None
+        assert "detailed description" in str(result.body)
+        assert "Including lists" in str(result.body)
+        assert "And formatting" in str(result.body)
 
     def test_malformed_issue_ids(self, default_config):
         """Test handling of malformed issue IDs."""
@@ -212,11 +208,11 @@ And more paragraphs"""
             mock_branch.return_value = "feature/PROJ-123-add-feature"
 
             # Message matches branch issue ID
-            result = formatter.validate("PROJ-123: Add feature", branch="feature/PROJ-123-add-feature")
+            result = formatter.validate("PROJ-123: Add feature")
             assert result.valid
 
             # Message uses different issue ID than branch
-            result = formatter.validate("PROJ-456: Unrelated change", branch="feature/PROJ-123-add-feature")
+            result = formatter.validate("PROJ-456: Unrelated change")
             assert not result.valid
             assert any("branch issue ID" in error.lower() for error in result.errors)
 
