@@ -1,6 +1,38 @@
 # CHANGELOG
 
 
+## v0.1.3 (2025-03-27)
+
+### Bug Fixes
+
+- Module imported multiple times
+  ([`2cc8c8e`](https://github.com/thetestlabs/commit-lint/commit/2cc8c8e9298ef4c4c6b3938e28f157d05ac6d346))
+
+- Module imported multiple times
+  ([`8dc1552`](https://github.com/thetestlabs/commit-lint/commit/8dc1552a12fd783b0889dec886dec7e2d5ef4765))
+
+- Resolve issue lists should be surrounded by blank lines
+  ([`ff6e296`](https://github.com/thetestlabs/commit-lint/commit/ff6e29645bd02f848064800ba5cb0fdac0e556df))
+
+### Refactoring
+
+- Refactor create and init commands and add helper functions to reduce cyclomatic complexity
+  ([`a54efdf`](https://github.com/thetestlabs/commit-lint/commit/a54efdfae715762122e25df50f3a667958dbc83a))
+
+These refactorings significantly reduce the cyclomatic complexity by:
+
+1. Extracting format-specific config generation into a dedicated helper 2. Separating file writing
+  logic based on file type 3. Isolating validation and display logic 4. Breaking down large methods
+  into smaller, focused functions with clear responsibilities
+
+The code is now more maintainable, testable, and easier to understand.
+
+### Testing
+
+- Resolve issue with failing test when validating Jira style commit messages
+  ([`92be997`](https://github.com/thetestlabs/commit-lint/commit/92be997a42a58d4e111895b0a3d9f7766f569117))
+
+
 ## v0.1.2 (2025-03-27)
 
 ### Bug Fixes
