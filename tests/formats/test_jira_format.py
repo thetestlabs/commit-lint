@@ -1,6 +1,6 @@
 import pytest
-from unittest.mock import patch, MagicMock
-from commit_lint.formats.jira import JiraCommitFormat, JiraCommitResult
+from unittest.mock import patch
+from commit_lint.formats.jira import JiraCommitFormat
 
 
 @pytest.fixture
