@@ -1,6 +1,6 @@
 import pytest
-from unittest.mock import patch, MagicMock
-from commit_lint.formats.github import GitHubCommitFormat, GitHubCommitResult
+from unittest.mock import patch
+from commit_lint.formats.github import GitHubCommitFormat
 
 
 @pytest.fixture

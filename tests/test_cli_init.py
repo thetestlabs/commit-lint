@@ -2,7 +2,6 @@ import pytest
 import tomli
 from pathlib import Path
 from typer.testing import CliRunner
-from unittest.mock import patch, MagicMock, mock_open
 from commit_lint.cli import app
 
 @pytest.fixture

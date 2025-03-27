@@ -1,7 +1,5 @@
-import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 import sys
-import importlib
 
 
 def test_version_import_from_metadata():
