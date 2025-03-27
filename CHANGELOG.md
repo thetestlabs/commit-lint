@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.1.4 (2025-03-27)
+
+### Bug Fixes
+
+- Remove unused keyword
+  ([`4d0adc5`](https://github.com/thetestlabs/commit-lint/commit/4d0adc54538cfb8e8d2983e8180a085c10b08c73))
+
+### Refactoring
+
+- Reduce cyclomatic complexity for three methods
+  ([`62814e0`](https://github.com/thetestlabs/commit-lint/commit/62814e0bb4aa90716370119f2fa974e204206d36))
+
+
 ## v0.1.3 (2025-03-27)
 
 ### Bug Fixes
