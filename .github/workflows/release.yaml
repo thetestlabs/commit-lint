@@ -105,7 +105,7 @@ jobs:
           # pip install pytest pytest-cov typer tomli pydantic questionary pyyaml==6.0.2 rich==13.9.4 tomli-w==1.2.0
           # pip install -i https://test.pypi.org/simple/ commit-lint==0.1.1
           # poetry build
-          pytest --cov --cov-branch --cov-report=xml
+          uv run pytest --cov --cov-branch --cov-report=xml
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5.4.0
