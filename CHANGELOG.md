@@ -1,6 +1,43 @@
 # CHANGELOG
 
 
+## v0.2.0 (2025-03-28)
+
+### Code Style
+
+- Format using ruff and isort
+  ([`1269941`](https://github.com/thetestlabs/commit-lint/commit/1269941258b4ded3cd28549cee53090426bbcdf3))
+
+### Continuous Integration
+
+- Troubleshooting workflow
+  ([`2558243`](https://github.com/thetestlabs/commit-lint/commit/2558243c07dec98a400cc814d7c18e9d8f5fa75e))
+
+- Troubleshooting workflow
+  ([`f4981ba`](https://github.com/thetestlabs/commit-lint/commit/f4981ba4a497731d9020a824f5ef41cb106f5825))
+
+- Troubleshooting workflow
+  ([`efae625`](https://github.com/thetestlabs/commit-lint/commit/efae6257778fba6b4312cef4d674be40a0c40f8c))
+
+- Update workflow file to use uv
+  ([`3bc3c2c`](https://github.com/thetestlabs/commit-lint/commit/3bc3c2cfd247ca9a4937765446ba95c7c201aa8a))
+
+### Documentation
+
+- Add workflow badge to README
+  ([`68af577`](https://github.com/thetestlabs/commit-lint/commit/68af5775464e4c93869ee08fea1ad0372e7a1596))
+
+### Features
+
+- Move project mananagement from poetry to uv
+  ([`4cd9eb2`](https://github.com/thetestlabs/commit-lint/commit/4cd9eb2f0862748b1c2420a78f090fba749a12eb))
+
+### Refactoring
+
+- Remove redundant config files and update workflow
+  ([`a8cc807`](https://github.com/thetestlabs/commit-lint/commit/a8cc8071fce80f05ba56b7915e6eeb56d6580611))
+
+
 ## v0.1.4 (2025-03-27)
 
 ### Bug Fixes
