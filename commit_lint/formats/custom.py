@@ -15,12 +15,16 @@ Example configuration:
 """
 
 import re
-from typing import Dict, List, Any
+from typing import Any
+from typing import Dict
+from typing import List
+
 from rich.panel import Panel
 from rich.prompt import Prompt
 from rich.console import Console
 
-from .base import CommitFormat, CommitFormatResult
+from .base import CommitFormat
+from .base import CommitFormatResult
 
 console = Console()
 

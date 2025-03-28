@@ -7,12 +7,18 @@ interactive generation of commit messages in this format.
 """
 
 import re
-from typing import Dict, Optional, Any, List, Tuple
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Tuple
+from typing import Optional
+
+import questionary
 from rich.panel import Panel
 from rich.console import Console
-import questionary
 
-from .base import CommitFormat, CommitFormatResult
+from .base import CommitFormat
+from .base import CommitFormatResult
 
 # Dictionary of commit type descriptions
 COMMIT_TYPE_DESCRIPTIONS = {
@@ -108,11 +114,9 @@ class ConventionalCommitFormat(CommitFormat):
 
         Returns:
             ConventionalCommitResult: A result object containing validation status,
-                                     any errors, and parsed components of the message.
+                                      any errors, and parsed components of the message.
         """
-        errors = []
-
-        # Match against pattern
+        # Match against pattern first
         match = self.commit_pattern.match(commit_message)
         if not match:
             return ConventionalCommitResult(
@@ -127,11 +131,37 @@ class ConventionalCommitFormat(CommitFormat):
         body = match.group("body")
         footer = match.group("footer")
 
-        # Validate type
+        # Collect validation errors
+        errors = []
+
+        # Run individual validation checks
+        self._validate_type(type_name, errors)
+        self._validate_scope(scope, errors)
+        self._validate_breaking_change(type_name, breaking, errors)
+        self._validate_subject_line(type_name, scope, breaking, description, errors)
+        self._validate_subject_content(description, errors)
+        self._validate_body_and_footer(body, footer, errors)
+
+        # Return result with all components
+        return ConventionalCommitResult(
+            valid=len(errors) == 0,
+            errors=errors,
+            type=type_name,
+            scope=scope,
+            breaking=breaking,
+            description=description,
+            body=body,
+            footer=footer,
+        )
+
+    def _validate_type(self, type_name: str, errors: List[str]) -> None:
+        """Validate the commit type."""
         valid_types = self.config.get("types", [])
         if valid_types and type_name not in valid_types:
             errors.append(f"Invalid type: {type_name}. Must be one of: {', '.join(valid_types)}")
 
+    def _validate_scope(self, scope: Optional[str], errors: List[str]) -> None:
+        """Validate commit scope requirements and allowed values."""
         # Validate scope if required
         scope_required = self.config.get("scope_required", False)
         if scope_required and not scope:
@@ -142,13 +172,19 @@ class ConventionalCommitFormat(CommitFormat):
         if allowed_scopes and scope and scope not in allowed_scopes:
             errors.append(f"Invalid scope: {scope}. Must be one of: {', '.join(allowed_scopes)}")
 
-        # Validate breaking changes
+    def _validate_breaking_change(self, type_name: str, breaking: bool, errors: List[str]) -> None:
+        """Validate if breaking changes are allowed for this type."""
         allowed_breaking = self.config.get("allowed_breaking_changes", [])
         if breaking and type_name not in allowed_breaking:
             errors.append(f"Breaking changes not allowed for type: {type_name}")
 
-        # Validate subject length
+    def _validate_subject_line(
+        self, type_name: str, scope: Optional[str], breaking: bool, description: str, errors: List[str]
+    ) -> None:
+        """Validate the subject line length."""
         max_subject_length = self.config.get("max_subject_length", 100)
+
+        # Build subject line to check length
         subject_line = f"{type_name}"
         if scope:  # Only add parentheses if scope exists
             subject_line += f"({scope})"
@@ -159,6 +195,8 @@ class ConventionalCommitFormat(CommitFormat):
         if len(subject_line) > max_subject_length:
             errors.append(f"Subject line too long ({len(subject_line)} > {max_subject_length})")
 
+    def _validate_subject_content(self, description: str, errors: List[str]) -> None:
+        """Validate subject content requirements (case, period, etc.)."""
         # Validate subject case
         subject_case = self.config.get("subject_case", "lower")
         if subject_case == "lower" and not description[0].islower():
@@ -171,6 +209,8 @@ class ConventionalCommitFormat(CommitFormat):
         if no_period_end and description.strip().endswith("."):
             errors.append("Subject description should not end with period")
 
+    def _validate_body_and_footer(self, body: Optional[str], footer: Optional[str], errors: List[str]) -> None:
+        """Validate body and footer requirements."""
         # Validate body if required
         body_required = self.config.get("body_required", False)
         if body_required and not body:
@@ -180,17 +220,6 @@ class ConventionalCommitFormat(CommitFormat):
         footer_required = self.config.get("footer_required", False)
         if footer_required and not footer:
             errors.append("Footer is required")
-
-        return ConventionalCommitResult(
-            valid=len(errors) == 0,
-            errors=errors,
-            type=type_name,
-            scope=scope,
-            breaking=breaking,
-            description=description,
-            body=body,
-            footer=footer,
-        )
 
     def prompt_for_message(self, config: Dict[str, Any]) -> str:
         """

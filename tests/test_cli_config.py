@@ -1,7 +1,8 @@
-from unittest.mock import patch, MagicMock
-from typer.testing import CliRunner
+from unittest.mock import MagicMock
+from unittest.mock import patch
 
 import pytest
+from typer.testing import CliRunner
 
 from commit_lint.cli import app
 
@@ -110,6 +111,6 @@ def test_format_specific_options(runner):
                 # Check that format-specific options were passed
                 if mock_get_format.call_args:
                     called_config = mock_get_format.call_args[0][0]
-                    assert called_config["scope_required"] == True
+                    assert called_config["scope_required"]
                     assert "api" in called_config["allowed_scopes"]
                     assert called_config["max_subject_length"] == 50

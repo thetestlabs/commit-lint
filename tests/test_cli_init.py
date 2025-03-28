@@ -1,8 +1,8 @@
 from pathlib import Path
-from typer.testing import CliRunner
 
-import pytest
 import tomli
+import pytest
+from typer.testing import CliRunner
 
 from commit_lint.cli import app
 

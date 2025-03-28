@@ -7,12 +7,18 @@ potentially with references to GitHub issues (e.g., "Fixes #123").
 """
 
 import re
-from typing import Dict, Optional, Any, Tuple
+from typing import Any
+from typing import Dict
+from typing import Tuple
+from typing import Optional
+
 from rich.panel import Panel
-from rich.prompt import Prompt, Confirm
+from rich.prompt import Prompt
+from rich.prompt import Confirm
 from rich.console import Console
 
-from .base import CommitFormat, CommitFormatResult
+from .base import CommitFormat
+from .base import CommitFormatResult
 
 console = Console()
 

@@ -1,5 +1,5 @@
-from unittest.mock import patch
 import sys
+from unittest.mock import patch
 
 
 def test_version_import_from_metadata():

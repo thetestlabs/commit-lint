@@ -6,12 +6,14 @@ commit messages in various formats including Conventional Commits,
 GitHub style, Jira style, and custom regex-based formats.
 """
 
-from typing import Dict, Any
+from typing import Any
+from typing import Dict
+
 from .base import CommitFormat
-from .conventional import ConventionalCommitFormat
-from .github import GitHubCommitFormat
 from .jira import JiraCommitFormat
 from .custom import CustomCommitFormat
+from .github import GitHubCommitFormat
+from .conventional import ConventionalCommitFormat
 
 # Define public API
 __all__ = ["get_commit_format", "CommitFormat", "FORMAT_REGISTRY"]

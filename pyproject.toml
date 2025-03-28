@@ -55,9 +55,9 @@ python-semantic-release = "v9.21.0"
 pytest = "^8.3.5"
 pytest-cov = "^6.0.0"
 
-[tool.bandit]
-targets = ["commit_lint"]
-exclude_dirs = ["tests"]
+[tool.isort]
+length_sort = true
+force_single_line = true
 
 [tool.ruff]
 fix = true
@@ -70,11 +70,6 @@ line-ending = "lf"
 
 [tool.ruff.lint]
 allowed-confusables = ["−", "∗"]
-
-[tool.ruff.lint.isort]
-case-sensitive = true
-force-wrap-aliases = true
-length-sort = true
 
 [tool.ruff.lint.mccabe]
 max-complexity = 5

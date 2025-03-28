@@ -1,16 +1,37 @@
+"""
+Command-line interface for the commit-lint tool.
+
+This module provides a CLI for validating and creating commit messages
+that follow standardized formats like Conventional Commits, GitHub-style,
+or Jira-style commit messages.
+
+The CLI supports the following commands:
+- lint: Validate existing commit messages
+- create: Interactively create compliant commit messages
+- commit: Create messages and directly commit changes
+- install: Install Git hooks for automatic validation
+- init: Generate configuration files with default settings
+
+Each format has specific validation rules that can be customized
+through configuration files (pyproject.toml or commit-lint.toml).
+"""
+
 import tempfile
 import subprocess
-from typing import List, Optional, Dict, Any
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
 from pathlib import Path
-from importlib.metadata import version as get_version
 from importlib.metadata import PackageNotFoundError
+from importlib.metadata import version as get_version
 
-import typer
 import tomli
+import typer
 import tomli_w
 from rich.panel import Panel
-from rich.console import Console
 from rich.table import Table
+from rich.console import Console
 from rich.markdown import Markdown
 
 from .config import load_config
@@ -131,10 +152,12 @@ def show_rules_callback(value: bool):
 
         # Example config in pyproject.toml
         console.print(Markdown("## Example Configuration"))
-        example_config = ('```toml\n[tool.commit_lint]\n# Common configuration\n'
-                 'format_type = "conventional"  # or "github", "jira", "custom"\n\n'
-                 '# Format-specific settings\ntypes = ["feat", "fix", "docs"]\n'
-                 'max_subject_length = 100\nscope_required = false\n```')
+        example_config = (
+            "```toml\n[tool.commit_lint]\n# Common configuration\n"
+            'format_type = "conventional"  # or "github", "jira", "custom"\n\n'
+            '# Format-specific settings\ntypes = ["feat", "fix", "docs"]\n'
+            "max_subject_length = 100\nscope_required = false\n```"
+        )
         console.print(Markdown(example_config))
 
         raise typer.Exit()
