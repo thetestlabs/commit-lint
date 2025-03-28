@@ -2,23 +2,12 @@
 name = "commit-lint"
 version = "v0.1.4"
 description = "A configurable linter for better commit messages"
-authors = [
-    {name = "Chris McQuaid",email = "chris@thetestlabs.io"}
-]
-readme = "README.md"
+authors = [{ name = "Chris McQuaid", email = "chris@thetestlabs.io" }]
 requires-python = ">=3.9,<4.0"
-license = {text = "MIT"}
-dependencies = [
-    "pydantic (>=2.10.6,<3.0.0)",
-    "typer (>=0.15.2,<0.16.0)",
-    "questionary (>=2.1.0,<3.0.0)",
-    "pyyaml (>=6.0.2,<7.0.0)",
-    "rich (>=13.9.4,<14.0.0)",
-    "tomli (>=2.2.1,<3.0.0)",
-    "tomli-w (>=1.2.0,<2.0.0)"
-]
+readme = "README.md"
+license = { text = "MIT" }
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Environment :: Console",
     "Intended Audience :: Developers",
     "Topic :: Software Development :: Version Control :: Git",
@@ -31,29 +20,36 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
 ]
+dependencies = [
+    "pydantic (>=2.10.6,<3.0.0)",
+    "typer (>=0.15.2,<0.16.0)",
+    "questionary (>=2.1.0,<3.0.0)",
+    "pyyaml (>=6.0.2,<7.0.0)",
+    "rich (>=13.9.4,<14.0.0)",
+    "tomli (>=2.2.1,<3.0.0)",
+    "tomli-w (>=1.2.0,<2.0.0)",
+]
+
+[project.urls]
+changelog = "https://github.com/thetestlabs/commit-lint/blob/main/CHANGELOG.md"
+documentation = "https://commit-lint.readthedocs.io"
+homepage = "https://commit-lint.readthedocs.io"
+issues = "https://github.com/thetestlabs/commit-lint/issues"
+repository = "http://github.com/thetestlabs/commit-lint.git"
 
 [project.scripts]
 commit-lint = "commit_lint.cli:app"
 
-[project.urls]
-changelog = "https://github.com/python-semantic-release/python-semantic-release/blob/master/CHANGELOG.md"
-documentation = "https://python-semantic-release.readthedocs.io"
-homepage = "https://python-semantic-release.readthedocs.io"
-issues = "https://github.com/python-semantic-release/python-semantic-release/issues"
-repository = "http://github.com/python-semantic-release/python-semantic-release.git"
-
 [build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
-[tool.poetry]
-requires-poetry = ">=2.0"
-# TODO: add [tool.poetry.group.test.dependencies]
-
-[tool.poetry.group.dev.dependencies]
-python-semantic-release = "v9.21.0"
-pytest = "^8.3.5"
-pytest-cov = "^6.0.0"
+[dependency-groups]
+dev = [
+    "python-semantic-release==v9.21.0",
+    "pytest>=8.3.5,<9",
+    "pytest-cov>=6.0.0,<7",
+]
 
 [tool.isort]
 length_sort = true
@@ -76,11 +72,8 @@ max-complexity = 5
 
 [tool.semantic_release]
 build_command = """
-    pip install poetry
-    poetry install
-    poetry lock
-    poetry check
-    poetry build
+    pip install uv
+    uv build
 """
 major_on_zero = true
 tag_format = "v{version}"
