@@ -83,6 +83,23 @@ jobs:
       #     poetry lock
       #     poetry check
 
+      - name: Set up latest Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Run pre-commit hooks
+        uses: pre-commit/action@v3.0.1
+        continue-on-error: true
+
+      - name: deps
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          uv venv
+          source venv/bin/activate
+          uv pip install --group dev --editable ./commit-lint
+
+
       - name: Run tests with coverage
         run: |
           # pip install pytest pytest-cov typer tomli pydantic questionary pyyaml==6.0.2 rich==13.9.4 tomli-w==1.2.0
