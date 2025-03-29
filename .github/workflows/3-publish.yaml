@@ -43,7 +43,7 @@ jobs:
         with:
           repository-url: https://test.pypi.org/legacy/
         continue-on-error: true
-  
+
       - name: Publish | Upload to GitHub Release Assets
         uses: python-semantic-release/publish-action@9747ce2b9d2004be1341bfe05e04bcffa29994b0 # v9.21.0
         if: steps.release.outputs.released == 'true'
