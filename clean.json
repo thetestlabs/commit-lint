@@ -15,5 +15,9 @@
         "first-line-heading": {
             "enabled": false
         }
-    }
+    },
+    "exclude": [
+        "./CHANGELOG.md",
+        "**/CHANGELOG.md"
+    ]
 }

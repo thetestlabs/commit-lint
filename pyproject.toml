@@ -81,6 +81,9 @@ version_toml = ["pyproject.toml:project.version:tf"]
 [tool.semantic_release.changelog.default_templates]
 mask_initial_release = true
 
+[tool.semantic_release.changelog.environment]
+template_dir = "changelogs"
+
 [tool.commit_lint]
 # Common configuration
 format_type = "conventional"  # or "github", "jira", "custom"

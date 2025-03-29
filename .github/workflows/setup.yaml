@@ -84,7 +84,7 @@ jobs:
         run: |
           touch repo-with-git.tar.gz
           tar --exclude=repo-with-git.tar.gz -czf repo-with-git.tar.gz .
-      
+
       - uses: actions/upload-artifact@v4
         with:
           name: repo-with-git
