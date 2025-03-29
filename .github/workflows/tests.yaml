@@ -12,7 +12,7 @@ jobs:
       # Download and extract repository with Git metadata
       - uses: actions/download-artifact@v4
         with:
-        name: repo-with-git
+          name: repo-with-git
           
       - name: Extract repository
         run: tar -xzf repo-with-git.tar.gz
