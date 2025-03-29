@@ -1,0 +1,52 @@
+name: tests
+
+on:
+  workflow_run:
+    workflows: [tests]
+    types: [completed]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      # Download and extract repository with Git metadata
+      - name: Download workflow artifact
+        uses: dawidd6/action-download-artifact@v9
+        with:
+          workflow: setup
+          run_id: ${{ github.event.workflow_run.id }}
+          name: repo-with-git-tests
+
+      - uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.APP_KEY }}
+
+      - name: Set up latest Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Action | Semantic Version Release
+        id: release
+        # Adjust tag with desired version if applicable.
+        uses: python-semantic-release/python-semantic-release@v9.21.0
+        with:
+          github_token: ${{ steps.app-token.outputs.token }}
+          git_committer_name: "github-actions"
+          git_committer_email: "actions@users.noreply.github.com"
+
+      - name: Publish | Upload package to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1.12
+        if: steps.release.outputs.released == 'true'
+        with:
+          repository-url: https://test.pypi.org/legacy/
+        continue-on-error: true
+  
+      - name: Publish | Upload to GitHub Release Assets
+        uses: python-semantic-release/publish-action@v9.21.0
+        if: steps.release.outputs.released == 'true'
+        with:
+          github_token: ${{ steps.app-token.outputs.token }}
+          tag: ${{ steps.release.outputs.tag }}

@@ -11,14 +11,14 @@ jobs:
     steps:
       # Download and extract repository with Git metadata
       - name: Download workflow artifact
-        uses: dawidd6/action-download-artifact@v3
+        uses: dawidd6/action-download-artifact@v9
         with:
           workflow: setup
           run_id: ${{ github.event.workflow_run.id }}
           name: repo-with-git
 
       - name: Extract repository
-        run: tar -xzf repo-with-git.tar.gz
+        run: tar -xzf repo-with-git-tests.tar.gz
 
       - name: Set up latest Python
         uses: actions/setup-python@v5
@@ -50,3 +50,13 @@ jobs:
           curl -Ls https://coverage.codacy.com/get.sh -o ./get.sh
           chmod +x ./get.sh
           ./get.sh report -r ./coverage.xml
+
+      - name: Archive repository with Git metadata
+        run: |
+          touch repo-with-git-tests.tar.gz
+          tar --exclude=repo-with-git-tests.tar.gz -czf repo-with-git-tests.tar.gz .
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: repo-with-git-tests
+          path: repo-with-git-tests.tar.gz
