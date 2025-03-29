@@ -13,7 +13,7 @@ jobs:
       - name: Download workflow artifact
         uses: dawidd6/action-download-artifact@07ab29fd4a977ae4d2b275087cf67563dfdf0295 # v9
         with:
-          workflow: setup
+          workflow: tests
           run_id: ${{ github.event.workflow_run.id }}
           name: repo-with-git-tests
 
