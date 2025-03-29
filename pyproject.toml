@@ -72,7 +72,6 @@ max-complexity = 5
 
 [tool.semantic_release]
 build_command = """
-    pip install uv
     uv build
 """
 major_on_zero = true

@@ -10,11 +10,11 @@
 
 A configurable linter for better commit messages.
 
-# Commit Message Standards and Linting Rules
+## Commit Message Standards and Linting Rules
 
 Here's a breakdown of the linting rules for each format supported by the tool:
 
-## 1. Conventional Commits
+### 1. Conventional Commits
 
 ```toml
 [tool.commit_lint]
@@ -38,7 +38,7 @@ no_period_end = true
 - Subject line must not exceed max_subject_length
 - Breaking changes only allowed for specified types
 
-## 2. GitHub Style
+### 2. GitHub Style
 
 ```toml
 [tool.commit_lint]
@@ -58,7 +58,7 @@ keywords = ["Fixes", "Closes", "Resolves"]
 - Optional detailed description after a blank line
 - No explicit style rules for the description body
 
-## 3. Jira Style
+### 3. Jira Style
 
 ```toml
 [tool.commit_lint]
@@ -76,7 +76,7 @@ max_message_length = 72
 - Optional detailed description after a blank line
 - No specific format requirements for the message content itself
 
-## 4. Custom Format
+### 4. Custom Format
 
 ```toml
 [tool.commit_lint]
