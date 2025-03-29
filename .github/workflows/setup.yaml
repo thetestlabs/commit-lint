@@ -81,7 +81,9 @@ jobs:
 
       # Archive the repository with Git metadata
       - name: Archive repository with Git metadata
-        run: tar -czf repo-with-git.tar.gz .
+        run: |
+          touch repo-with-git.tar.gz
+          tar --exclude=repo-with-git.tar.gz -czf repo-with-git.tar.gz .
       
       - uses: actions/upload-artifact@v4
         with:
