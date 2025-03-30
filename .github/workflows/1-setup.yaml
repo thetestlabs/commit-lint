@@ -7,6 +7,7 @@ on:
 
 jobs:
   setup:
+    if: github.actor != 'commit-lint-release-bot'
     runs-on: ubuntu-latest
     steps:
       - name: Setup | Checkout Repository on Release Branch
