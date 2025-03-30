@@ -46,6 +46,7 @@ jobs:
         run: |
           which python3
           which uv
+          uv build
 
       - name: Action | Semantic Version Release
         id: release
