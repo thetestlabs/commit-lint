@@ -58,8 +58,6 @@ jobs:
           uv sync
           uv pip install python-semantic-release==9.21.0
           uv run python-semantic-release version
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
 
       - name: Publish | Upload package to PyPI
         uses: pypa/gh-action-pypi-publish@76f52bc884231f62b9a034ebfe128415bbaabdfc # v1.12.4
