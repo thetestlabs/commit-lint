@@ -52,7 +52,6 @@ jobs:
           uv build
           git config user.name "github-actions"
           git config user.email "actions@users.noreply.github.com"
-          uv add python-semantic-releas==9.21.0
           semantic-release version
 
     #   - name: Action | Semantic Version Release
