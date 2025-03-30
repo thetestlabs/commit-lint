@@ -1,6 +1,17 @@
 # CHANGELOG
 
 
+## v0.3.1 (2025-03-30)
+
+### Bug Fixes
+
+- Add condition to workflow to prevent recursive workflow triggers
+  ([`e5fdf31`](https://github.com/thetestlabs/commit-lint/commit/e5fdf315a8f17f3fede116c9948f94ef65f5bbd7))
+
+- Update permissions
+  ([`bdfc95f`](https://github.com/thetestlabs/commit-lint/commit/bdfc95feaa29c04bbaa771d765e81ab45172a637))
+
+
 ## v0.3.0 (2025-03-30)
 
 ### Continuous Integration
