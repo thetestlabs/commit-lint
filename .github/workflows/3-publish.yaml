@@ -21,6 +21,7 @@ jobs:
         run: |
           tar -xzf repo-with-git-tests.tar.gz
           rm repo-with-git-tests.tar.gz
+          ls -la
           cd repo-with-git-tests/
           ls -la
 
