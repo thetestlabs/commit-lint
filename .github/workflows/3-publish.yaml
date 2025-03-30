@@ -55,6 +55,8 @@ jobs:
           uv sync
           uv pip install python-semantic-release==9.21.0
           uv run python-semantic-release version
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
 
     #   - name: Action | Semantic Version Release
     #     id: release
