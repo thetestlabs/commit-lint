@@ -85,6 +85,9 @@ mask_initial_release = true
 [tool.semantic_release.changelog.environment]
 template_dir = "changelogs"
 
+[tool.semantic_release.remote.token]
+env = "REL_TOKEN"
+
 [tool.commit_lint]
 # Common configuration
 format_type = "conventional"  # or "github", "jira", "custom"
