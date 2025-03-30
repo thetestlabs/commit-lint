@@ -9,7 +9,6 @@ jobs:
   tests:
     runs-on: ubuntu-latest
     steps:
-      # Download and extract repository with Git metadata
       - name: Download workflow artifact
         uses: dawidd6/action-download-artifact@07ab29fd4a977ae4d2b275087cf67563dfdf0295 # v9
         with:

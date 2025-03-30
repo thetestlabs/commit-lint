@@ -43,7 +43,6 @@ jobs:
           source .venv/bin/activate
           uv sync
           uv pip install --group dev --editable .
-          ls -la
 
       - uses: actions/github-script@v7
         id: set-result
@@ -90,24 +89,15 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
-          # Debug the working directory
-          pwd
-          ls -la
-
-          # Move into the cloned directory (critical step!)
           cd commit-lint
 
-          # Configure Git with personal access token
           git config --global user.name "github-actions"
           git config --global user.email "actions@users.noreply.github.com"
 
-          # Set the remote with token - use pattern that works for GitHub Apps
           git remote set-url origin "https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/thetestlabs/commit-lint.git"
 
-          # Verify git config and remote (safely)
           git config --get remote.origin.url | sed 's/https:\/\/.*@/https:\/\/***@/'
 
-          # Install and run semantic-release
           uv add python-semantic-release==9.21.0
           uv sync
           uv pip install python-semantic-release==9.21.0
