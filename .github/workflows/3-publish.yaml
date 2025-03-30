@@ -39,7 +39,7 @@ jobs:
           python-version: "3.13"
 
       - name: deps
-        run: |
+        run:
           curl -LsSf https://astral.sh/uv/install.sh | sh
           source .venv/bin/activate
           uv sync
@@ -48,7 +48,7 @@ jobs:
       - name: Version | Build package | Release
         id: release
         env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          REL_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "actions@users.noreply.github.com"
