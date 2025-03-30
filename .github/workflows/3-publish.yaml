@@ -48,17 +48,17 @@ jobs:
       - name: Version | Build package | Release
         id: release
         env:
-          REL_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "actions@users.noreply.github.com"
 
-          #   git remote set-url origin "https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/thetestlabs/commit-lint.git"
           git remote set-url origin "https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/thetestlabs/commit-lint.git"
+          #   git remote set-url origin "https://x-access-token:${{ secrets.RELEASE_TOKEN }}@github.com/thetestlabs/commit-lint.git"
 
           git config --get remote.origin.url | sed 's/https:\/\/.*@/https:\/\/***@/'
 
-          curl -s -H "Authorization: token ${{ secrets.RELEASE_TOKEN }}" \
+          curl -s -H "Authorization: token ${{ steps.app-token.outputs.token }}" \
             https://api.github.com/repos/thetestlabs/commit-lint | jq '.permissions'
             
           uv add python-semantic-release==9.21.0
