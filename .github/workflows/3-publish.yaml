@@ -50,7 +50,7 @@ jobs:
         with:
           script: return "Hello!"
           result-encoding: string
-      
+
       - name: Get result
         run: echo "${{steps.set-result.outputs.result}}"
 
@@ -60,15 +60,15 @@ jobs:
           github-token: ${{ steps.app-token.outputs.token }}
           script: |
             const { execSync } = require('child_process');
-            
+
             // Set git configuration (using exec since this isn't part of the GitHub API)
             console.log('Setting Git configuration...');
             execSync('git config --global user.name "github-actions"');
             execSync('git config --global user.email "actions@users.noreply.github.com"');
-            
+
             // Clone the repository
             console.log('Cloning repository...');
-            
+
             // Using execSync is the most direct equivalent to the git clone command
             try {
               execSync('git clone https://github.com/thetestlabs/commit-lint.git', {stdio: 'inherit'});
