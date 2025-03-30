@@ -92,10 +92,18 @@ jobs:
         run: |
           which python3
           which uv
-          git config user.name "github-actions"
-          git config user.email "actions@users.noreply.github.com"
-          git remote set-url origin https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/thetestlabs/commit-lint.git
-          git remote -v
+          
+          # Configure Git with personal access token (PAT)
+          git config --global user.name "github-actions"
+          git config --global user.email "actions@users.noreply.github.com"
+          
+          # Use this format for GitHub App tokens
+          git remote set-url origin "https://oauth2:${{ steps.app-token.outputs.token }}@github.com/thetestlabs/commit-lint.git"
+          
+          # Verify the remote (but don't show the token in logs!)
+          git remote -v | sed 's/https:\/\/.*@/https:\/\/***@/'
+          
+          # Install and run semantic-release
           uv add python-semantic-release==9.21.0
           uv sync
           uv pip install python-semantic-release==9.21.0
