@@ -9,7 +9,7 @@ jobs:
   tests:
     runs-on: ubuntu-latest
     permissions:
-        contents: read
+        contents: write
         issues: write
     steps:
       # Download and extract repository with Git metadata
@@ -90,19 +90,23 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
-          which python3
-          which uv
-
-          # Configure Git with personal access token (PAT)
+          # Debug the working directory
+          pwd
+          ls -la
+          
+          # Move into the cloned directory (critical step!)
+          cd commit-lint
+          
+          # Configure Git with personal access token
           git config --global user.name "github-actions"
           git config --global user.email "actions@users.noreply.github.com"
-
-          # Use this format for GitHub App tokens
-          git remote set-url origin "https://${{ steps.app-token.outputs.token }}@github.com/thetestlabs/commit-lint.git"
-
-          # Verify the remote (but don't show the token in logs!)
-          git remote -v | sed 's/https:\/\/.*@/https:\/\/***@/'
-
+          
+          # Set the remote with token - use pattern that works for GitHub Apps
+          git remote set-url origin "https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/thetestlabs/commit-lint.git"
+          
+          # Verify git config and remote (safely)
+          git config --get remote.origin.url | sed 's/https:\/\/.*@/https:\/\/***@/'
+          
           # Install and run semantic-release
           uv add python-semantic-release==9.21.0
           uv sync
