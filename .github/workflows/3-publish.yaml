@@ -11,6 +11,7 @@ jobs:
     permissions:
         contents: write
         issues: write
+        id-token: write
     steps:
       # Download and extract repository with Git metadata
       - name: Download workflow artifact
