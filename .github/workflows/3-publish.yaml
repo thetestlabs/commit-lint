@@ -39,7 +39,7 @@ jobs:
           python-version: "3.13"
 
       - name: deps
-        run:
+        run: |
           curl -LsSf https://astral.sh/uv/install.sh | sh
           source .venv/bin/activate
           uv sync
