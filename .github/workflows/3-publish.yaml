@@ -17,6 +17,13 @@ jobs:
           run_id: ${{ github.event.workflow_run.id }}
           name: repo-with-git-tests
 
+      - name: Troubleshoot | List files
+        run: |
+          ls -la
+          ls -la .venv
+          ls -la .venv/bin
+          ls -la .venv/lib/python3.13/site-packages
+
       - uses: actions/create-github-app-token@v1
         id: app-token
         with:
