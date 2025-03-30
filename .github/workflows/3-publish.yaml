@@ -40,6 +40,7 @@ jobs:
           source .venv/bin/activate
           uv sync
           uv pip install --group dev --editable .
+          ls -la
 
       - name: Action | Semantic Version Release
         id: release
