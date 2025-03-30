@@ -39,6 +39,7 @@ jobs:
           curl -LsSf https://astral.sh/uv/install.sh | sh
           source .venv/bin/activate
           uv sync
+          uv pip install --group dev --editable .
 
       - name: Action | Semantic Version Release
         id: release
