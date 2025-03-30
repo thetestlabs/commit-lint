@@ -54,7 +54,7 @@ jobs:
           uv add python-semantic-release==9.21.0
           uv sync
           uv pip install --verbose python-semantic-release==9.21.0
-          python-semantic-release version
+          uv python-semantic-release version
 
     #   - name: Action | Semantic Version Release
     #     id: release
