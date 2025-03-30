@@ -48,7 +48,7 @@ jobs:
       - name: Version | Build package | Release
         id: release
         env:
-          REL_TOKEN: ${{ steps.app-token.outputs.token }}
+          REL_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "actions@users.noreply.github.com"
@@ -58,7 +58,7 @@ jobs:
 
           git config --get remote.origin.url | sed 's/https:\/\/.*@/https:\/\/***@/'
 
-          curl -s -H "Authorization: token ${{ steps.app-token.outputs.token }}" \
+          curl -s -H "Authorization: token ${{ secrets.RELEASE_TOKEN }}" \
             https://api.github.com/repos/thetestlabs/commit-lint | jq '.permissions'
             
           uv add python-semantic-release==9.21.0
