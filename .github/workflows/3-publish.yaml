@@ -53,7 +53,7 @@ jobs:
           git config user.email "actions@users.noreply.github.com"
           uv add python-semantic-release==9.21.0
           uv sync
-          semantic-release version
+          python-semantic-release version
 
     #   - name: Action | Semantic Version Release
     #     id: release
