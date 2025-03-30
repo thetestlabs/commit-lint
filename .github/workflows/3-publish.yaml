@@ -8,6 +8,8 @@ on:
 jobs:
   tests:
     runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
     steps:
       # Download and extract repository with Git metadata
       - name: Download workflow artifact
@@ -42,20 +44,25 @@ jobs:
           uv pip install --group dev --editable .
           ls -la
 
-      - name: deps
+      - name: Version | Build package | Release
+        id: release
         run: |
           which python3
           which uv
           uv build
+          git config user.name "github-actions"
+          git config user.email "actions@users.noreply.github.com"
+          uv add python-semantic-releas==9.21.0
+          semantic-release version
 
-      - name: Action | Semantic Version Release
-        id: release
-        # Adjust tag with desired version if applicable.
-        uses: python-semantic-release/python-semantic-release@26bb37cfab71a5a372e3db0f48a6eac57519a4a6 # v9.21.0
-        with:
-          github_token: ${{ steps.app-token.outputs.token }}
-          git_committer_name: "github-actions"
-          git_committer_email: "actions@users.noreply.github.com"
+    #   - name: Action | Semantic Version Release
+    #     id: release
+    #     # Adjust tag with desired version if applicable.
+    #     uses: python-semantic-release/python-semantic-release@26bb37cfab71a5a372e3db0f48a6eac57519a4a6 # v9.21.0
+    #     with:
+    #       github_token: ${{ steps.app-token.outputs.token }}
+    #       git_committer_name: "github-actions"
+    #       git_committer_email: "actions@users.noreply.github.com"
 
       - name: Publish | Upload package to PyPI
         uses: pypa/gh-action-pypi-publish@76f52bc884231f62b9a034ebfe128415bbaabdfc # v1.12.4
