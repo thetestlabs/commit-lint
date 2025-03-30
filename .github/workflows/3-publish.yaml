@@ -42,6 +42,11 @@ jobs:
           uv pip install --group dev --editable .
           ls -la
 
+      - name: deps
+        run: |
+          which python3
+          which uv
+
       - name: Action | Semantic Version Release
         id: release
         # Adjust tag with desired version if applicable.
