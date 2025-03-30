@@ -98,7 +98,7 @@ jobs:
           git config --global user.email "actions@users.noreply.github.com"
 
           # Use this format for GitHub App tokens
-          git remote set-url origin "https://github-actions:${{ steps.app-token.outputs.token }}@github.com/thetestlabs/commit-lint.git"
+          git remote set-url origin "https://${{ steps.app-token.outputs.token }}@github.com/thetestlabs/commit-lint.git"
 
           # Verify the remote (but don't show the token in logs!)
           git remote -v | sed 's/https:\/\/.*@/https:\/\/***@/'
