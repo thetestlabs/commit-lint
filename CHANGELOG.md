@@ -1,6 +1,22 @@
 # CHANGELOG
 
 
+## v0.3.0 (2025-03-30)
+
+### Continuous Integration
+
+- Troubleshooting
+  ([`0b81221`](https://github.com/thetestlabs/commit-lint/commit/0b812213965015bf6d30d8f8f2a1666b3549d114))
+
+- Troubleshooting
+  ([`9df92f6`](https://github.com/thetestlabs/commit-lint/commit/9df92f67cde8c31246ba01b128111b0b4c1801e0))
+
+### Features
+
+- Test workflow
+  ([`e54b7ae`](https://github.com/thetestlabs/commit-lint/commit/e54b7ae4267d0ad2eec29cd4abcb61f2c3aac730))
+
+
 ## v0.2.1 (2025-03-30)
 
 ### Bug Fixes
