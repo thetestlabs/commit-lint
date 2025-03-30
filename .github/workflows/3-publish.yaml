@@ -34,6 +34,12 @@ jobs:
         with:
           python-version: "3.13"
 
+      - name: deps
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          source .venv/bin/activate
+          uv sync
+
       - name: Action | Semantic Version Release
         id: release
         # Adjust tag with desired version if applicable.
