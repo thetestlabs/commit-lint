@@ -50,8 +50,6 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
-          cd commit-lint
-
           git config --global user.name "github-actions"
           git config --global user.email "actions@users.noreply.github.com"
 
