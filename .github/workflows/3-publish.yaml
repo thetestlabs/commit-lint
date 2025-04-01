@@ -53,6 +53,8 @@ jobs:
           git config --global user.name "github-actions"
           git config --global user.email "actions@users.noreply.github.com"
 
+          git remote set-url origin "https://x-access-token:${{ secrets.FA_TOKEN }}@github.com/thetestlabs/commit-lint.git"
+
           git config --get remote.origin.url | sed 's/https:\/\/.*@/https:\/\/***@/'
 
           curl -s -H "Authorization: token ${{ secrets.FA_TOKEN }}" \
