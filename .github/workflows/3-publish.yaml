@@ -61,7 +61,16 @@ jobs:
           uv add python-semantic-release==9.21.0
           uv sync
           uv pip install python-semantic-release==9.21.0
-          uv run python-semantic-release -vv version --no-push
+          
+          # Get the version and set it as an output
+          VERSION=$(uv run python-semantic-release -vv version --no-push --print)
+          echo "tag=v$VERSION" >> $GITHUB_OUTPUT
+          echo "released=true" >> $GITHUB_OUTPUT
+
+          git status
+          git add .
+          git commit -m "chore(release): v$VERSION"
+          git push
 
       - name: Publish | Upload package to PyPI
         uses: pypa/gh-action-pypi-publish@76f52bc884231f62b9a034ebfe128415bbaabdfc # v1.12.4
