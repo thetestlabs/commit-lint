@@ -4,7 +4,7 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
     branches: # Target branches
-      - master
+      - main
 
 # default token permissions = none
 permissions: {}
