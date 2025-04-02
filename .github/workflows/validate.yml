@@ -391,6 +391,7 @@ jobs:
           uv venv
           source .venv/bin/activate
           uv pip install --group dev --editable .
+          ruff --version
 
       - name: Lint | Ruff Evaluation
         id: lint
