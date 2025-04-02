@@ -397,6 +397,7 @@ jobs:
       - name: Lint | Ruff Evaluation
         id: lint
         run: |
+          uv sync
           which python
           ruff check \
             --config pyproject.toml \
@@ -407,9 +408,11 @@ jobs:
         id: format-check
         if: ${{ always() && steps.type-check.outcome != 'skipped' }}
         run: |
+          uv sync
           ruff format --check --config pyproject.toml
 
       - name: Format | isort
         id: isort
         run: |
+          uv sync
           isort . --settings-file ./pyproject.toml
