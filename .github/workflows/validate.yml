@@ -413,4 +413,4 @@ jobs:
       - name: Format | isort
         id: isort
         run: |
-          isort --recursive --settings-file ./pyproject.toml
+          isort . --settings-file ./pyproject.toml
