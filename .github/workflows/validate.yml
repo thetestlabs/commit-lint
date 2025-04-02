@@ -392,10 +392,12 @@ jobs:
           source .venv/bin/activate
           uv pip install --group dev --editable .
           ruff --version
+          which python
 
       - name: Lint | Ruff Evaluation
         id: lint
         run: |
+          which python
           ruff check \
             --config pyproject.toml \
             --output-format=full \
