@@ -50,6 +50,7 @@ dev = [
     "python-semantic-release==v9.21.0",
     "pytest>=8.3.5,<9",
     "pytest-cov>=6.0.0,<7",
+    "isort>=6.0.1",
 ]
 
 [tool.isort]
