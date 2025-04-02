@@ -237,39 +237,26 @@ jobs:
           uv pip install pytest-github-actions-annotate-failures
           uv pip uninstall -y commit-lint
           uv pip install dist/commit-lint-*.whl
-          python -c 'import pathlib, commit_lint; print(f"PKG_INSTALLED_DIR={pathlib.Path(commit_lint.__file__).resolve().parent}")' >> $GITHUB_OUTPUT
+          uv run python -c 'import pathlib, commit_lint; print(f"PKG_INSTALLED_DIR={pathlib.Path(commit_lint.__file__).resolve().parent}")' >> $GITHUB_OUTPUT
 
-      - name: Test | Run pytest -m e2e --comprehensive
+      - name: Test | Run pytest with coverage
         id: tests
         run: |
           uv run pytest --cov --cov-branch --cov-report=xml
 
-      - name: Report | Upload Cached Repos on Failure
-        uses: actions/upload-artifact@v4
-        if: ${{ failure() && steps.tests.outcome == 'failure' }}
-        with:
-          name: ${{ format('cached-repos-{0}-{1}', matrix.os, matrix.python-version) }}
-          path: .pytest_cache/d/psr-*
-          include-hidden-files: true
-          if-no-files-found: error
-          retention-days: 1
-
-      - name: Report | Upload Tested Repos on Failure
-        uses: actions/upload-artifact@v4
-        if: ${{ failure() && steps.tests.outcome == 'failure' }}
-        with:
-          name: ${{ format('tested-repos-{0}-{1}', matrix.os, matrix.python-version) }}
-          path: /tmp/pytest-of-runner/pytest-current/*
-          include-hidden-files: true
-          if-no-files-found: error
-          retention-days: 1
-
-      - name: Report | Upload Test Results
-        uses: mikepenz/action-junit-report@b14027d33d3a745ccc4d6a12f649e83110b5a373  # v5.4.0
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@0565863a31f2c772f9f0395002a31e3f06189574 # v5.4.0
         if: ${{ always() && steps.tests.outcome != 'skipped' }}
         with:
-          report_paths: ./tests/reports/*.xml
-          annotate_only: true
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Upload code coverage to Codacy
+        if: ${{ always() && steps.tests.outcome != 'skipped' }}
+        run: |
+          export CODACY_PROJECT_TOKEN=${{ secrets.CODACY_API_TOKEN }}
+          curl -Ls https://coverage.codacy.com/get.sh -o ./get.sh
+          chmod +x ./get.sh
+          ./get.sh report -r ./coverage.xml
 
 
   test-windows:
@@ -391,14 +378,11 @@ jobs:
           source .venv/bin/activate
           uv pip install --group dev --editable .
           ruff --version
-          which python
 
       - name: Lint | Ruff Evaluation
         id: lint
         run: |
-          # uv sync
           source .venv/bin/activate
-          which python
           ruff check \
             --config pyproject.toml \
             --output-format=full \
@@ -408,13 +392,11 @@ jobs:
         id: format-check
         if: ${{ always() && steps.type-check.outcome != 'skipped' }}
         run: |
-          # uv sync
           source .venv/bin/activate
           ruff format --check --config pyproject.toml
 
       - name: Format | isort
         id: isort
         run: |
-          # uv sync
           source .venv/bin/activate
           isort . --settings-file ./pyproject.toml

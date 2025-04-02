@@ -12,7 +12,7 @@ docs:
     - CONTRIBUTING.rst
     - CHANGELOG.rst
 src:
-    - src/**
+    - commit_lint/**
     - pyproject.toml
 tests:
     - tests/**

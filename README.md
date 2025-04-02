@@ -8,7 +8,7 @@
 
 # commit-lint
 
-A configurable linter for better commit messages.
+>>A configurable linter for better commit messages.
 
 ## Commit Message Standards and Linting Rules
 
