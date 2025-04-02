@@ -182,13 +182,13 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
-      - name: Upload code coverage to Codacy
-        if: ${{ always() && steps.tests.outcome != 'skipped' }}
-        run: |
-          export CODACY_PROJECT_TOKEN=${{ secrets.CODACY_API_TOKEN }}
-          curl -Ls https://coverage.codacy.com/get.sh -o ./get.sh
-          chmod +x ./get.sh
-          ./get.sh report -r ./coverage.xml
+      # - name: Upload code coverage to Codacy
+      #   if: ${{ always() && steps.tests.outcome != 'skipped' }}
+      #   run: |
+      #     export CODACY_PROJECT_TOKEN=${{ secrets.CODACY_API_TOKEN }}
+      #     curl -Ls https://coverage.codacy.com/get.sh -o ./get.sh
+      #     chmod +x ./get.sh
+      #     ./get.sh report -r ./coverage.xml
 
   test-linux:
     name: Python ${{ matrix.python-version }} on ${{ matrix.os }} E2E tests
