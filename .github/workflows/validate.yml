@@ -93,7 +93,6 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.COMMON_PYTHON_VERSION }}
-          cache: 'pip'
 
       - name: Setup | Install dependencies
         run: |
@@ -162,7 +161,6 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.LOWEST_PYTHON_VERSION }}
-          cache: 'pip'
 
       - name: Setup | Install dependencies
         run: |
@@ -214,7 +212,6 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          cache: 'pip'
 
       - name: Setup | Download Distribution Artifacts
         uses: actions/download-artifact@v4
@@ -282,7 +279,6 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          cache: 'pip'
 
       - name: Setup | Download Distribution Artifacts
         uses: actions/download-artifact@v4
