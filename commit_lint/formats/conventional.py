@@ -16,9 +16,11 @@ from typing import Optional
 import questionary
 from rich.panel import Panel
 from rich.console import Console
+from dataclasses import dataclass, field
 
 from .base import CommitFormat
 from .base import CommitFormatResult
+from .base import CommitFormatError
 
 # Dictionary of commit type descriptions
 COMMIT_TYPE_DESCRIPTIONS = {
@@ -38,6 +40,14 @@ COMMIT_TYPE_DESCRIPTIONS = {
 console = Console()
 
 
+# Add custom exceptions
+class InvalidConventionalFormatError(CommitFormatError):
+    """Raised for specific conventional commit format errors."""
+
+    pass
+
+
+@dataclass
 class ConventionalCommitResult(CommitFormatResult):
     """
     Results specific to Conventional Commits validation.

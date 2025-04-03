@@ -66,28 +66,14 @@ class CustomCommitFormat(CommitFormat):
         return "custom"
 
     def __init__(self, config: Dict[str, Any]):
-        """
-        Initialize the custom format validator with configuration settings.
-
-        Args:
-            config: Configuration dictionary with a required 'custom_pattern' regex
-                   and optional 'prompts' and 'message_template' for interactive use.
-
-        Raises:
-            ValueError: If 'custom_pattern' is missing or contains an invalid regex.
-        """
+        """Initialize the custom format validator."""
         self.config = config
-
-        # Get custom pattern from config
         pattern = config.get("custom_pattern", "")
-        if not pattern:
-            raise ValueError("Custom commit format requires 'custom_pattern' in config")
 
-        # Compile custom pattern
         try:
             self.pattern = re.compile(pattern, re.DOTALL)
         except re.error as e:
-            raise ValueError(f"Invalid regular expression in custom_pattern: {e}")
+            raise InvalidPatternError(f"Invalid regular expression in custom_pattern: {e}")
 
         # Get named groups in the pattern for prompting
         self.named_groups = self._get_named_groups(pattern)
@@ -117,17 +103,15 @@ class CustomCommitFormat(CommitFormat):
 
     def validate(self, commit_message: str) -> CustomCommitResult:
         """
-        Validate a commit message according to the custom pattern.
+        Validate a commit message against the custom pattern.
 
-        This method checks if the message matches the configured regex pattern
-        and can apply additional validation rules defined in configuration.
-
-        Args:
-            commit_message: The commit message string to validate.
-
-        Returns:
-            CustomCommitResult: A result object containing validation status,
-                               any errors, and captured pattern groups.
+        Examples:
+            >>> format = CustomCommitFormat({"custom_pattern": r"^\[(?P<category>\w+)\] (?P<message>.+)$"})
+            >>> result = format.validate("[FEATURE] Add new capability")
+            >>> result.valid
+            True
+            >>> result.category
+            'FEATURE'
         """
         # Match against pattern
         match = self.pattern.match(commit_message)

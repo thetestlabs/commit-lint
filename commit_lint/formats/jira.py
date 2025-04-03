@@ -22,6 +22,10 @@ from .base import CommitFormatResult
 
 console = Console()
 
+# Extract constants
+JIRA_ID_PATTERN = r"^\s*([A-Z][A-Z0-9_]+-\d+)\s*:\s+(.*?)\s*$"
+DEFAULT_MAX_LENGTH = 72
+
 
 class JiraCommitResult(CommitFormatResult):
     """
@@ -105,7 +109,7 @@ class JiraCommitFormat(CommitFormat):
         project_keys = self.config.get("jira_project_keys", [])
 
         # Modified regex to require at least one whitespace after colon
-        issue_id_match = re.match(r"^\s*([A-Z][A-Z0-9_]+-\d+)\s*:\s+(.*?)\s*$", first_line)
+        issue_id_match = re.match(JIRA_ID_PATTERN, first_line)
 
         if issue_id_match:
             issue_id = issue_id_match.group(1)
@@ -114,7 +118,8 @@ class JiraCommitFormat(CommitFormat):
             # Validate project key if specific keys are configured
             if project_keys and issue_id.split("-")[0] not in project_keys:
                 errors.append(
-                    f"Commit message must start with a Jira issue ID from one of the allowed projects: {', '.join(project_keys)}"
+                    f"Commit message must start with a Jira issue ID "
+                    f"from one of the allowed projects: {', '.join(project_keys)}"
                 )
         elif require_issue_id:
             errors.append("Commit message must start with a Jira issue ID (e.g., PROJECT-123: message)")
@@ -123,7 +128,7 @@ class JiraCommitFormat(CommitFormat):
             message_text = first_line
 
         # Validate message length (only checking the message part, not the issue ID)
-        max_length = self.config.get("max_message_length", 72)
+        max_length = self.config.get("max_message_length", DEFAULT_MAX_LENGTH)
         if len(message_text) > max_length:
             errors.append(f"Commit message is too long ({len(message_text)} > {max_length} characters)")
 
@@ -159,8 +164,9 @@ class JiraCommitFormat(CommitFormat):
 
         return issue_id
 
-    def _get_project_key(self, jira_project_keys: List[str]) -> str:
+    def _get_project_key(self, jira_project_keys: List[str] = None) -> str:
         """Get Jira project key from user, with validation if needed."""
+        jira_project_keys = jira_project_keys or []
         if jira_project_keys:
             return Prompt.ask("Jira project key", choices=jira_project_keys, default=jira_project_keys[0])
         else:
