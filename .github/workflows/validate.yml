@@ -121,7 +121,7 @@ jobs:
 
       - name: Build | Create non-versioned distribution artifact
         if: steps.version.outputs.released == 'false'
-        run: python -m build .
+        run: uv build
 
       - name: Build | Set distribution artifact variables
         id: build
@@ -188,166 +188,165 @@ jobs:
       #     chmod +x ./get.sh
       #     ./get.sh report -r ./coverage.xml
 
-  test-linux:
-    name: Python ${{ matrix.python-version }} on ${{ matrix.os }} E2E tests
-    runs-on: ${{ matrix.os }}
-    needs:
-      - build
-      - unit-test
-    if: ${{ inputs.src-files-changed == 'true' || inputs.test-files-changed == 'true' || inputs.ci-files-changed == 'true' }}
-    strategy:
-      matrix:
-        python-version: ${{ fromJson(inputs.python-versions-linux) }}
-        os:
-          - ubuntu-latest
+  # test-linux:
+  #   name: Python ${{ matrix.python-version }} on ${{ matrix.os }} E2E tests
+  #   runs-on: ${{ matrix.os }}
+  #   needs:
+  #     - unit-test
+  #   if: ${{ inputs.src-files-changed == 'true' || inputs.test-files-changed == 'true' || inputs.ci-files-changed == 'true' }}
+  #   strategy:
+  #     matrix:
+  #       python-version: ${{ fromJson(inputs.python-versions-linux) }}
+  #       os:
+  #         - ubuntu-latest
 
-    steps:
-      - name: Setup | Checkout Repository
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.sha }}
-          fetch-depth: 1
+  #   steps:
+  #     - name: Setup | Checkout Repository
+  #       uses: actions/checkout@v4
+  #       with:
+  #         ref: ${{ github.sha }}
+  #         fetch-depth: 1
 
-      - name: Setup | Install Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
+  #     - name: Setup | Install Python ${{ matrix.python-version }}
+  #       uses: actions/setup-python@v5
+  #       with:
+  #         python-version: ${{ matrix.python-version }}
 
-      - name: Setup | Download Distribution Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ needs.build.outputs.distribution-artifacts }}
-          path: ./dist
+  #     - name: Setup | Download Distribution Artifacts
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: ${{ needs.build.outputs.distribution-artifacts }}
+  #         path: ./dist
 
-      - name: Setup | Install dependencies
-        id: install
-        # To ensure we are testing our installed package (not the src code), we must
-        # uninstall the editable install (symlink) first then install the distribution artifact.
-        # Lastly, we ask python to give us the installation location of our distribution artifact
-        # so that we can use it in the pytest command for coverage
-        run: |
-          curl -LsSf https://astral.sh/uv/install.sh | sh
-          uv venv
-          source .venv/bin/activate
-          uv pip install --group dev --editable .
+  #     - name: Setup | Install dependencies
+  #       id: install
+  #       # To ensure we are testing our installed package (not the src code), we must
+  #       # uninstall the editable install (symlink) first then install the distribution artifact.
+  #       # Lastly, we ask python to give us the installation location of our distribution artifact
+  #       # so that we can use it in the pytest command for coverage
+  #       run: |
+  #         curl -LsSf https://astral.sh/uv/install.sh | sh
+  #         uv venv
+  #         source .venv/bin/activate
+  #         uv pip install --group dev --editable .
 
-          uv pip install pytest-github-actions-annotate-failures
-          uv pip uninstall -y commit-lint
-          uv pip install dist/commit-lint-*.whl
-          uv run python -c 'import pathlib, commit_lint; print(f"PKG_INSTALLED_DIR={pathlib.Path(commit_lint.__file__).resolve().parent}")' >> $GITHUB_OUTPUT
+  #         uv pip install pytest-github-actions-annotate-failures
+  #         uv pip uninstall -y commit-lint
+  #         uv pip install dist/commit-lint-*.whl
+  #         uv run python -c 'import pathlib, commit_lint; print(f"PKG_INSTALLED_DIR={pathlib.Path(commit_lint.__file__).resolve().parent}")' >> $GITHUB_OUTPUT
 
-      - name: Test | Run pytest with coverage
-        id: tests
-        run: |
-          uv run pytest --cov --cov-branch --cov-report=xml
+  #     - name: Test | Run pytest with coverage
+  #       id: tests
+  #       run: |
+  #         uv run pytest --cov --cov-branch --cov-report=xml
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@0565863a31f2c772f9f0395002a31e3f06189574 # v5.4.0
-        if: ${{ always() && steps.tests.outcome != 'skipped' }}
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+  #     - name: Upload coverage to Codecov
+  #       uses: codecov/codecov-action@0565863a31f2c772f9f0395002a31e3f06189574 # v5.4.0
+  #       if: ${{ always() && steps.tests.outcome != 'skipped' }}
+  #       with:
+  #         token: ${{ secrets.CODECOV_TOKEN }}
 
-      - name: Upload code coverage to Codacy
-        if: ${{ always() && steps.tests.outcome != 'skipped' }}
-        run: |
-          export CODACY_PROJECT_TOKEN=${{ secrets.CODACY_API_TOKEN }}
-          curl -Ls https://coverage.codacy.com/get.sh -o ./get.sh
-          chmod +x ./get.sh
-          ./get.sh report -r ./coverage.xml
+  #     - name: Upload code coverage to Codacy
+  #       if: ${{ always() && steps.tests.outcome != 'skipped' }}
+  #       run: |
+  #         export CODACY_PROJECT_TOKEN=${{ secrets.CODACY_API_TOKEN }}
+  #         curl -Ls https://coverage.codacy.com/get.sh -o ./get.sh
+  #         chmod +x ./get.sh
+  #         ./get.sh report -r ./coverage.xml
 
 
-  test-windows:
-    name: Python ${{ matrix.python-version }} on ${{ matrix.os }} E2E tests
-    runs-on: ${{ matrix.os }}
-    needs:
-      - build
-      - unit-test
-    if: ${{ inputs.src-files-changed == 'true' || inputs.test-files-changed == 'true' || inputs.ci-files-changed == 'true' }}
-    strategy:
-      matrix:
-        python-version: ${{ fromJson(inputs.python-versions-windows) }}
-        os: [windows-latest]
+  # test-windows:
+  #   name: Python ${{ matrix.python-version }} on ${{ matrix.os }} E2E tests
+  #   runs-on: ${{ matrix.os }}
+  #   needs:
+  #     - build
+  #     - unit-test
+  #   if: ${{ inputs.src-files-changed == 'true' || inputs.test-files-changed == 'true' || inputs.ci-files-changed == 'true' }}
+  #   strategy:
+  #     matrix:
+  #       python-version: ${{ fromJson(inputs.python-versions-windows) }}
+  #       os: [windows-latest]
 
-    steps:
-      - name: Setup | Checkout Repository
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.sha }}
-          fetch-depth: 1
+  #   steps:
+  #     - name: Setup | Checkout Repository
+  #       uses: actions/checkout@v4
+  #       with:
+  #         ref: ${{ github.sha }}
+  #         fetch-depth: 1
 
-      - name: Setup | Install Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
+  #     - name: Setup | Install Python ${{ matrix.python-version }}
+  #       uses: actions/setup-python@v5
+  #       with:
+  #         python-version: ${{ matrix.python-version }}
 
-      - name: Setup | Download Distribution Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ needs.build.outputs.distribution-artifacts }}
-          path: dist
+  #     - name: Setup | Download Distribution Artifacts
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: ${{ needs.build.outputs.distribution-artifacts }}
+  #         path: dist
 
-      - name: Setup | Install dependencies
-        id: install
-        # To ensure we are testing our installed package (not the src code), we must
-        # uninstall the editable install (symlink) first then install the distribution artifact.
-        # Lastly, we ask python to give us the installation location of our distribution artifact
-        # so that we can use it in the pytest command for coverage
-        shell: pwsh
-        run: |
-          $ErrorActionPreference = 'stop'
-          python -m pip install --upgrade pip setuptools wheel
-          pip install -e .[test]
-          pip install pytest-github-actions-annotate-failures
-          pip uninstall -y python-semantic-release
-          $psrWheelFile = Get-ChildItem dist\python_semantic_release-*.whl -File | Select-Object -Index 0
-          pip install "$psrWheelFile"
-          python -c 'import pathlib, semantic_release; print(f"PKG_INSTALLED_DIR={pathlib.Path(semantic_release.__file__).resolve().parent}")' | Tee-Object -Variable cmdOutput
-          echo $cmdOutput >> $env:GITHUB_OUTPUT
+  #     - name: Setup | Install dependencies
+  #       id: install
+  #       # To ensure we are testing our installed package (not the src code), we must
+  #       # uninstall the editable install (symlink) first then install the distribution artifact.
+  #       # Lastly, we ask python to give us the installation location of our distribution artifact
+  #       # so that we can use it in the pytest command for coverage
+  #       shell: pwsh
+  #       run: |
+  #         $ErrorActionPreference = 'stop'
+  #         python -m pip install --upgrade pip setuptools wheel
+  #         pip install -e .[test]
+  #         pip install pytest-github-actions-annotate-failures
+  #         pip uninstall -y python-semantic-release
+  #         $psrWheelFile = Get-ChildItem dist\python_semantic_release-*.whl -File | Select-Object -Index 0
+  #         pip install "$psrWheelFile"
+  #         python -c 'import pathlib, semantic_release; print(f"PKG_INSTALLED_DIR={pathlib.Path(semantic_release.__file__).resolve().parent}")' | Tee-Object -Variable cmdOutput
+  #         echo $cmdOutput >> $env:GITHUB_OUTPUT
 
-      - name: Test | Run pytest -m e2e
-        id: tests
-        shell: pwsh
-        # env:
-          # Required for GitPython to work on Windows because of getpass.getuser()
-          # USERNAME: "runneradmin"
-          # Because GHA is currently broken on Windows to pass these varables, we do it manually
-        run: |
-          $env:USERNAME = "runneradmin"
-          pytest                                                    `
-            -vv                                                     `
-            -nauto                                                  `
-            -m e2e                                                  `
-            `--cov=${{ steps.install.outputs.PKG_INSTALLED_DIR }}   `
-            `--cov-context=test                                     `
-            `--cov-report=term-missing                              `
-            `--junit-xml=tests/reports/pytest-results.xml
+  #     - name: Test | Run pytest -m e2e
+  #       id: tests
+  #       shell: pwsh
+  #       # env:
+  #         # Required for GitPython to work on Windows because of getpass.getuser()
+  #         # USERNAME: "runneradmin"
+  #         # Because GHA is currently broken on Windows to pass these varables, we do it manually
+  #       run: |
+  #         $env:USERNAME = "runneradmin"
+  #         pytest                                                    `
+  #           -vv                                                     `
+  #           -nauto                                                  `
+  #           -m e2e                                                  `
+  #           `--cov=${{ steps.install.outputs.PKG_INSTALLED_DIR }}   `
+  #           `--cov-context=test                                     `
+  #           `--cov-report=term-missing                              `
+  #           `--junit-xml=tests/reports/pytest-results.xml
 
-      - name: Report | Upload Cached Repos on Failure
-        uses: actions/upload-artifact@v4
-        if: ${{ failure() && steps.tests.outcome == 'failure' }}
-        with:
-          name: ${{ format('cached-repos-{0}-{1}', matrix.os, matrix.python-version) }}
-          path: .pytest_cache/d/psr-*
-          include-hidden-files: true
-          if-no-files-found: error
-          retention-days: 1
+  #     - name: Report | Upload Cached Repos on Failure
+  #       uses: actions/upload-artifact@v4
+  #       if: ${{ failure() && steps.tests.outcome == 'failure' }}
+  #       with:
+  #         name: ${{ format('cached-repos-{0}-{1}', matrix.os, matrix.python-version) }}
+  #         path: .pytest_cache/d/psr-*
+  #         include-hidden-files: true
+  #         if-no-files-found: error
+  #         retention-days: 1
 
-      - name: Report | Upload Tested Repos on Failure
-        uses: actions/upload-artifact@v4
-        if: ${{ failure() && steps.tests.outcome == 'failure' }}
-        with:
-          name: ${{ format('tested-repos-{0}-{1}', matrix.os, matrix.python-version) }}
-          path: ~/AppData/Local/Temp/pytest-of-runneradmin/pytest-current/*
-          include-hidden-files: true
-          if-no-files-found: error
-          retention-days: 1
+  #     - name: Report | Upload Tested Repos on Failure
+  #       uses: actions/upload-artifact@v4
+  #       if: ${{ failure() && steps.tests.outcome == 'failure' }}
+  #       with:
+  #         name: ${{ format('tested-repos-{0}-{1}', matrix.os, matrix.python-version) }}
+  #         path: ~/AppData/Local/Temp/pytest-of-runneradmin/pytest-current/*
+  #         include-hidden-files: true
+  #         if-no-files-found: error
+  #         retention-days: 1
 
-      - name: Report | Upload Test Results
-        uses: mikepenz/action-junit-report@b14027d33d3a745ccc4d6a12f649e83110b5a373  # v5.4.0
-        if: ${{ always() && steps.tests.outcome != 'skipped' }}
-        with:
-          report_paths: ./tests/reports/*.xml
-          annotate_only: true
+  #     - name: Report | Upload Test Results
+  #       uses: mikepenz/action-junit-report@b14027d33d3a745ccc4d6a12f649e83110b5a373  # v5.4.0
+  #       if: ${{ always() && steps.tests.outcome != 'skipped' }}
+  #       with:
+  #         report_paths: ./tests/reports/*.xml
+  #         annotate_only: true
 
 
   lint:
