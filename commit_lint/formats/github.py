@@ -22,6 +22,11 @@ from .base import CommitFormatResult
 
 console = Console()
 
+# Extract constants
+MAX_DEFAULT_SUBJECT_LENGTH = 72
+DEFAULT_ISSUE_KEYWORDS = ["Fixes", "Closes", "Resolves"]
+NON_IMPERATIVE_VERBS = ["added", "fixes", "fixed", "adding", "updated", "changed"]
+
 
 class GitHubCommitResult(CommitFormatResult):
     """
@@ -71,7 +76,7 @@ class GitHubCommitFormat(CommitFormat):
         self.config = config
 
         # GitHub issue reference pattern (e.g., "Fixes #123")
-        self.issue_keywords = config.get("keywords", ["Fixes", "Closes", "Resolves"])
+        self.issue_keywords = config.get("keywords", DEFAULT_ISSUE_KEYWORDS)
         keyword_pattern = "|".join(self.issue_keywords)
 
         self.issue_pattern = re.compile(rf"(?:^|\s)(?P<keyword>{keyword_pattern}):?\s+#(?P<issue>\d+)", re.IGNORECASE)
@@ -109,7 +114,7 @@ class GitHubCommitFormat(CommitFormat):
         # body = match.group("body")  # Currently unused, commented out
 
         # Validate subject length (GitHub standard is 50 chars, flexible up to 72)
-        max_subject_length = self.config.get("max_subject_length", 72)
+        max_subject_length = self.config.get("max_subject_length", MAX_DEFAULT_SUBJECT_LENGTH)
         if len(subject) > max_subject_length:
             errors.append(f"Subject line too long ({len(subject)} > {max_subject_length})")
 
@@ -117,10 +122,11 @@ class GitHubCommitFormat(CommitFormat):
         imperative_mood = self.config.get("imperative_mood", True)
         if imperative_mood:
             # This is a very simple check for imperative mood (could be improved)
-            non_imperative_starters = ["added", "fixes", "fixed", "adding", "updated", "changed"]
             subject_start = subject.split()[0].lower() if subject.split() else ""
-            if subject_start in non_imperative_starters:
-                errors.append("Use imperative mood in subject line (e.g., 'Add' not 'Added')")
+            if subject_start in NON_IMPERATIVE_VERBS:
+                errors.append(
+                    f"Subject line should use imperative mood (e.g., 'Add feature' not '{subject_start} feature')"
+                )
 
         # Check for issue reference if required
         issue_required = self.config.get("issue_reference_required", False)
@@ -187,7 +193,7 @@ class GitHubCommitFormat(CommitFormat):
         issue_reference = ""
         keyword = None
 
-        issue_keywords = config.get("keywords", ["Fixes", "Closes", "Resolves"])
+        issue_keywords = config.get("keywords", DEFAULT_ISSUE_KEYWORDS)
         issue_required = config.get("issue_reference_required", False)
 
         if issue_required or Confirm.ask("Add issue reference?", default=False):

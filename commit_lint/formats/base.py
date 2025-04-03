@@ -6,13 +6,26 @@ providing a consistent interface for validation and interactive prompting
 regardless of the specific commit message format being used.
 """
 
-from abc import ABC
-from abc import abstractmethod
-from typing import Any
-from typing import Dict
-from typing import List
+from abc import ABC, abstractmethod
+from typing import Dict, List, Optional, Union, TypedDict, Any
 
 from pydantic import BaseModel
+
+
+class CommitFormatError(Exception):
+    """Base exception for commit format errors."""
+
+    pass
+
+
+ConfigDict = TypedDict(
+    "ConfigDict",
+    {
+        "format_type": str,
+        "max_message_length": int,
+        # Common config fields across formats
+    },
+)
 
 
 class CommitFormatResult(BaseModel):
@@ -56,7 +69,6 @@ class CommitFormat(ABC):
             CommitFormatResult: An object containing validation results.
         """
 
-    @abstractmethod
     @abstractmethod
     def prompt_for_message(self, config: Dict[str, Any]) -> str:
         """
