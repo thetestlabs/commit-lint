@@ -7,10 +7,10 @@ build:
     - scripts/**
 docs:
     - docs/**
-    - README.rst
-    - AUTHORS.rst
-    - CONTRIBUTING.rst
-    - CHANGELOG.rst
+    - README.md
+    - AUTHORS.md
+    - CONTRIBUTING.md
+    - CHANGELOG.md
 src:
     - commit_lint/**
     - pyproject.toml
