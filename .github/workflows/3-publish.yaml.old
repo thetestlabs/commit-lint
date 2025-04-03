@@ -59,11 +59,11 @@ jobs:
 
           curl -s -H "Authorization: token ${{ secrets.FA_TOKEN }}" \
             https://api.github.com/repos/thetestlabs/commit-lint | jq '.permissions'
-            
+
           uv add python-semantic-release==9.21.0
           uv sync
           uv pip install python-semantic-release==9.21.0
-          
+
           # Get the version and set it as an output
           VERSION=$(uv run python-semantic-release -vv version --no-push --print)
           echo "tag=v$VERSION" >> $GITHUB_OUTPUT

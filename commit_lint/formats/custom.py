@@ -29,6 +29,12 @@ from .base import CommitFormatResult
 console = Console()
 
 
+class InvalidPatternError(Exception):
+    """Exception raised when an invalid regex pattern is provided."""
+
+    pass
+
+
 class CustomCommitResult(CommitFormatResult):
     """
     Results specific to Custom format validation.
@@ -66,14 +72,28 @@ class CustomCommitFormat(CommitFormat):
         return "custom"
 
     def __init__(self, config: Dict[str, Any]):
-        """Initialize the custom format validator."""
-        self.config = config
+        """
+        Initialize the custom commit format with configuration.
+
+        Args:
+            config: Dictionary containing custom format configuration including:
+                  - custom_pattern: Regular expression pattern to match against
+                  - message_template: Template for generating messages
+                  - prompts: Dictionary of prompts for each named group
+
+        Raises:
+            InvalidPatternError: If the provided pattern is not a valid regex
+        """
+        super().__init__()
+
         pattern = config.get("custom_pattern", "")
+        if not pattern:
+            raise InvalidPatternError("No custom_pattern provided in configuration")
 
         try:
             self.pattern = re.compile(pattern, re.DOTALL)
         except re.error as e:
-            raise InvalidPatternError(f"Invalid regular expression in custom_pattern: {e}")
+            raise InvalidPatternError(f"Invalid regular expression in custom_pattern: {e}") from e
 
         # Get named groups in the pattern for prompting
         self.named_groups = self._get_named_groups(pattern)
