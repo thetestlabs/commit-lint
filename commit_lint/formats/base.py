@@ -6,8 +6,12 @@ providing a consistent interface for validation and interactive prompting
 regardless of the specific commit message format being used.
 """
 
-from abc import ABC, abstractmethod
-from typing import Dict, List, Optional, Union, TypedDict, Any
+from abc import ABC
+from abc import abstractmethod
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import TypedDict
 
 from pydantic import BaseModel
 

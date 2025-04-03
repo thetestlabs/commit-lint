@@ -12,15 +12,15 @@ from typing import Dict
 from typing import List
 from typing import Tuple
 from typing import Optional
+from dataclasses import dataclass
 
 import questionary
 from rich.panel import Panel
 from rich.console import Console
-from dataclasses import dataclass, field
 
 from .base import CommitFormat
-from .base import CommitFormatResult
 from .base import CommitFormatError
+from .base import CommitFormatResult
 
 # Dictionary of commit type descriptions
 COMMIT_TYPE_DESCRIPTIONS = {
