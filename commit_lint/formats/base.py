@@ -19,9 +19,6 @@ from pydantic import BaseModel
 class CommitFormatError(Exception):
     """Base exception for commit format errors."""
 
-    pass
-
-
 ConfigDict = TypedDict(
     "ConfigDict",
     {
