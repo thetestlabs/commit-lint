@@ -32,8 +32,6 @@ console = Console()
 class InvalidPatternError(Exception):
     """Exception raised when an invalid regex pattern is provided."""
 
-    pass
-
 
 class CustomCommitResult(CommitFormatResult):
     """

@@ -44,8 +44,6 @@ console = Console()
 class InvalidConventionalFormatError(CommitFormatError):
     """Raised for specific conventional commit format errors."""
 
-    pass
-
 
 @dataclass
 class ConventionalCommitResult(CommitFormatResult):
