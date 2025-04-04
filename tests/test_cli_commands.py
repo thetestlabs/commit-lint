@@ -19,17 +19,26 @@ def test_lint_command_valid_message(runner):
     with patch("commit_lint.config.load_config") as mock_load_config:
         mock_load_config.return_value = {"format_type": "conventional", "types": ["feat", "fix"]}
 
-        with patch("commit_lint.formats.get_commit_format") as mock_get_format:
-            mock_format = MagicMock()
-            mock_result = MagicMock()
-            mock_result.valid = True
-            mock_format.validate.return_value = mock_result
-            mock_get_format.return_value = mock_format
+        # Add this patch first to intercept any direct creation of ConventionalCommitResult
+        with patch("commit_lint.formats.conventional.ConventionalCommitResult") as mock_result_class:
+            # Configure what happens when ConventionalCommitResult is instantiated
+            mock_result_instance = MagicMock()
+            mock_result_instance.valid = True
+            mock_result_class.return_value = mock_result_instance
 
-            result = runner.invoke(app, ["lint", "-m", "feat: valid message"])
+            # Then continue with your existing mocks
+            with patch("commit_lint.formats.get_commit_format") as mock_get_format:
+                mock_format = MagicMock()
+                # This creates a basic mock with valid=True
+                mock_result = MagicMock()
+                mock_result.valid = True
+                mock_format.validate.return_value = mock_result
+                mock_get_format.return_value = mock_format
 
-            assert result.exit_code == 0
-            assert "valid" in result.stdout.lower()
+                result = runner.invoke(app, ["lint", "-m", "feat: valid message"])
+
+                assert result.exit_code == 0
+                assert "valid" in result.stdout.lower()
 
 
 def test_lint_command_invalid_message(runner):
@@ -37,20 +46,28 @@ def test_lint_command_invalid_message(runner):
     with patch("commit_lint.config.load_config") as mock_load_config:
         mock_load_config.return_value = {"format_type": "conventional", "types": ["feat", "fix"]}
 
-        with patch("commit_lint.formats.get_commit_format") as mock_get_format:
-            mock_format = MagicMock()
-            mock_result = MagicMock()
-            mock_result.valid = False
-            mock_result.errors = ["Commit message does not follow Conventional Commits format"]
-            mock_format.validate.return_value = mock_result
-            mock_get_format.return_value = mock_format
+        # Patch ConventionalCommitResult first
+        with patch("commit_lint.formats.conventional.ConventionalCommitResult") as mock_result_class:
+            mock_result_instance = MagicMock()
+            mock_result_instance.valid = False
+            mock_result_instance.errors = ["Commit message does not follow Conventional Commits format"]
+            mock_result_class.return_value = mock_result_instance
 
-            result = runner.invoke(app, ["lint", "-m", "invalid message", "--no-interactive"])
+            # Continue with existing mocks
+            with patch("commit_lint.formats.get_commit_format") as mock_get_format:
+                mock_format = MagicMock()
+                mock_result = MagicMock()
+                mock_result.valid = False
+                mock_result.errors = ["Commit message does not follow Conventional Commits format"]
+                mock_format.validate.return_value = mock_result
+                mock_get_format.return_value = mock_format
 
-            assert result.exit_code == 1
-            # Check for the actual message that appears in the output
-            assert "failed" in result.stdout.lower()
-            assert "conventional commits format" in result.stdout.lower()
+                result = runner.invoke(app, ["lint", "-m", "invalid message", "--no-interactive"])
+
+                assert result.exit_code == 1
+                # Check for the actual message that appears in the output
+                assert "failed" in result.stdout.lower()
+                assert "conventional commits format" in result.stdout.lower()
 
 
 def test_create_command_success(runner):
@@ -58,32 +75,39 @@ def test_create_command_success(runner):
     with patch("commit_lint.config.load_config") as mock_load_config:
         mock_load_config.return_value = {"format_type": "conventional", "types": ["feat", "fix"]}
 
-        # Mock questionary directly to avoid any interactive prompts
-        with (
-            patch("questionary.select") as mock_select,
-            patch("questionary.text") as mock_text,
-            patch("questionary.confirm") as mock_confirm,
-        ):
-            # Set up questionary mocks to return specific values
-            mock_select.return_value.ask.return_value = "feat"  # Type selection
-            mock_text.return_value.ask.side_effect = ["", "test message", ""]  # Scope, description, body
-            mock_confirm.return_value.ask.return_value = False  # For "breaking change" and other confirms
+        # Add this patch to handle any attempts to create a ConventionalCommitResult
+        with patch("commit_lint.formats.conventional.ConventionalCommitResult") as MockResult:
+            # Configure the mock class
+            mock_result_instance = MagicMock()
+            mock_result_instance.valid = True
+            MockResult.return_value = mock_result_instance
 
-            # Run the command with output to a file
-            with runner.isolated_filesystem():
-                result = runner.invoke(app, ["create", "-o", "message.txt"], catch_exceptions=False)
+            # Continue with your existing mocks
+            with (
+                patch("questionary.select") as mock_select,
+                patch("questionary.text") as mock_text,
+                patch("questionary.confirm") as mock_confirm,
+            ):
+                # Set up questionary mocks to return specific values
+                mock_select.return_value.ask.return_value = "feat"  # Type selection
+                mock_text.return_value.ask.side_effect = ["", "test message", ""]  # Scope, description, body
+                mock_confirm.return_value.ask.return_value = False  # For "breaking change" and other confirms
 
-                print(f"Exit code: {result.exit_code}")
-                print(f"Output: {result.stdout}")
+                # Run the command with output to a file
+                with runner.isolated_filesystem():
+                    result = runner.invoke(app, ["create", "-o", "message.txt"], catch_exceptions=False)
 
-                # Check if the command succeeded and the file was created
-                assert result.exit_code == 0
-                assert Path("message.txt").exists()
+                    print(f"Exit code: {result.exit_code}")
+                    print(f"Output: {result.stdout}")
 
-                # Verify content contains our mocked responses
-                with open("message.txt") as f:
-                    content = f.read()
-                    assert "feat: test message" in content
+                    # Check if the command succeeded and the file was created
+                    assert result.exit_code == 0
+                    assert Path("message.txt").exists()
+
+                    # Verify content contains our mocked responses
+                    with open("message.txt") as f:
+                        content = f.read()
+                        assert "feat: test message" in content
 
 
 def test_init_command_creates_config(runner):
